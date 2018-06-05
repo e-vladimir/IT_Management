@@ -1,6 +1,7 @@
-from core_gui import *
-from gui_form_main      import FormMain
-from core_sqlite import *
+from core_gui       import *
+from core_sqlite    import *
+
+from gui_form_main  import FormMain
 
 
 class AppManage(CApplication):
@@ -12,9 +13,6 @@ class AppManage(CApplication):
 		self.sql_connection = TSQLiteConnection('{0}/{1}'.format(self.PATH_COMMON, "db.sqlite"))
 
 	def __init_forms__(self):
-		# Костыль
-		self.init_sql()
-
 		self.form_main       = FormMain(self)
 
 
