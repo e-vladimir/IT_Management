@@ -1,6 +1,76 @@
 from dict import *
 
 
+# Характеристики
+class CFields:
+	connection  = None
+
+	def __init__(self, in_connection):
+		super(CFields, self).__init__(in_connection=None)
+
+		self.set_connection(in_connection)
+
+	def set_connection(self, in_connection=None):
+		self.connection   = in_connection
+		self._init_db_()
+
+	def _init_db_(self):
+		if self.connection is not None:
+			sql = "CREATE TABLE IF NOT EXISTS {} " \
+			      "(" \
+				  " ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "\
+			      " ID_OBJ     INTEGER, " \
+			      " field_cat  TEXT, " \
+			      " field_scat TEXT, " \
+			      " value      TEXT" \
+			      ")".format(TABLE_OBJ_FIELDS)
+			self.connection.exec_create(sql)
+
+
+class CMetaField:
+	connection  = None
+
+	id_obj = ""
+	cat    = ""
+	scat   = ""
+	value  = ""
+
+	struct = ""
+
+	def __init__(self, in_connection):
+		super(CMetaField, self).__init__(in_connection=None)
+
+		self.set_connection(in_connection)
+
+	def set_connection(self, in_connection=None):
+		self.connection   = in_connection
+
+
+# Объекты
+class CObjects:
+	connection  = None
+
+	def __init__(self, in_connection=None):
+		super(CObjects, self).__init__()
+
+		self.set_connection(in_connection)
+
+	def set_connection(self, in_connection=None):
+		self.connection   = in_connection
+		self._init_db_()
+
+	def _init_db_(self):
+		if self.connection is not None:
+			sql = "CREATE TABLE IF NOT EXISTS {} " \
+			      "(" \
+			      " ID         INTEGER PRIMARY KEY NOT NULL, " \
+			      " type       TEXT, " \
+			      " note       TEXT, " \
+			      " state      TEXT" \
+			      ")".format(TABLE_OBJ_LIST)
+			self.connection.exec_create(sql)
+
+
 class CMetaObject:
 	connection  = None
 
@@ -9,47 +79,27 @@ class CMetaObject:
 	type        = ""
 	state       = ""
 
-	fields = dict()
+	fields      = dict()
 
 	def __init__(self, in_connection=None):
 		super(CMetaObject, self).__init__()
 
 		self.set_connection(in_connection)
 
-	def _init_db_(self):
-		if self.connection is not None:
-			sql = "CREATE TABLE IF NOT EXISTS meta" \
-			      "(" \
-			      " ID    INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " \
-			      " note  TEXT, " \
-			      " type  TEXT, " \
-			      " state TEXT" \
-			      ")"
-			self.connection.exec_create(sql)
-
-			sql = "CREATE TABLE IF NOT EXISTS fields" \
-			      "(" \
-			      " ID    INTEGER, " \
-			      " field TEXT, " \
-			      " value TEXT" \
-			      ")"
-			self.connection.exec_create(sql)
-
 	def _generate_id_(self):
-		sql = "SELECT id " \
-		      "FROM meta " \
+		sql = "SELECT ID " \
+		      "FROM {} " \
 		      "ORDER BY id DESC " \
-		      "LIMIT 1"
+		      "LIMIT 1".format(TABLE_OBJ_LIST)
 		last_id = self.connection.get_single(sql)
 
 		if last_id is None: last_id = 0
-		else: last_id = int(last_id) + 1
+		else:               last_id = int(last_id) + 1
 
 		self.id = last_id
 
 	def set_connection(self, in_connection=None):
 		self.connection   = in_connection
-		self._init_db_()
 
 	def set_field(self, in_field="", in_value=""):
 		self.fields[in_field] = in_value
@@ -65,23 +115,22 @@ class CMetaObject:
 		if in_clearID: self.id = None
 
 	def load(self, in_id=None):
-		if in_id is not None:
-			self.id = in_id
+		if in_id is not None: self.id = in_id
 
 		self.clear()
 
 		if self.id is not None:
 			sql = "SELECT type, note, state " \
-			      "FROM meta " \
-			      "WHERE (id='{0}')".format(self.id)
+			      "FROM {} " \
+			      "WHERE (id='{}')".format(TABLE_OBJ_LIST, self.id)
 			self.type  = self.connection.get_single(sql, 0)
 			self.note  = self.connection.get_single(sql, 1)
 			self.state = self.connection.get_single(sql, 2)
 
 			sql = "SELECT field, value " \
-			      "FROM fields " \
-			      "WHERE (id='{0}') " \
-			      "ORDER BY field".format(self.id)
+			      "FROM {} " \
+			      "WHERE (id='{}') " \
+			      "ORDER BY field".format(TABLE_OBJ_FIELDS, self.id)
 			fields = self.connection.get_list(sql, 0)
 			values = self.connection.get_list(sql, 1)
 
@@ -100,24 +149,24 @@ class CMetaObject:
 			if self.id is None:
 				self._generate_id_()
 
-				sql = "INSERT INTO meta " \
+				sql = "INSERT INTO {} " \
 				      " (ID,     note,  type, state) " \
 				      "VALUES " \
-				      " ('{0}', '{1}', '{2}', '{3}')".format(self.id, self.note, self.type, self.state)
+				      " ('{}', '{}', '{}', '{}')".format(TABLE_OBJ_LIST, self.id, self.note, self.type, self.state)
 				self.connection.exec_insert(sql)
 			else:
-				sql = "UPDATE meta " \
-				      "SET note='{0}', " \
-				      "    type='{1}'," \
-				      "    state='{2}' " \
-				      "WHERE id='{3}'".format(self.note, self.type, self.state, self.id)
+				sql = "UPDATE {} " \
+				      "SET note ='{}', " \
+				      "    type ='{}'," \
+				      "    state='{}' " \
+				      "WHERE id ='{}'".format(TABLE_OBJ_LIST, self.note, self.type, self.state, self.id)
 				self.connection.exec_update(sql)
 
-			sql = "DELETE FROM fields WHERE (id='{0}')".format(self.id)
+			sql = "DELETE FROM {0} WHERE (id='{1}')".format(TABLE_OBJ_FIELDS, self.id)
 			self.connection.exec_delete(sql)
 
 			for field, value in self.fields.items():
-				sql = "INSERT INTO fields (ID, field, value) VALUES ('{0}', '{1}', '{2}')".format(self.id, field, value)
+				sql = "INSERT INTO {} (ID, field, value) VALUES ('{}', '{}', '{}')".format(TABLE_OBJ_FIELDS, self.id, field, value)
 				self.connection.exec_insert(sql)
 
 			self.connection.transaction_commit()
@@ -132,12 +181,38 @@ class CMetaObject:
 		self.connection.transaction_start()
 
 		try:
-			sql = "DELETE FROM fields WHERE (id='{0}')".format(self.id)
+			sql = "DELETE FROM fields WHERE (id='{}')".format(self.id)
 			self.connection.exec_delete(sql)
 
-			sql = "DELETE FROM meta WHERE (id='{0}')".format(self.id)
+			sql = "DELETE FROM meta WHERE (id='{}')".format(self.id)
 			self.connection.exec_delete(sql)
 
 			self.connection.transaction_commit()
 		except:
 			self.connection.transaction_rollback()
+
+
+# Справочник характеристик
+class CCategories:
+	connection  = None
+
+	def __init__(self, in_connection=None):
+		super(CCategories, self).__init__()
+
+		self.set_connection(in_connection)
+
+	def set_connection(self, in_connection=None):
+		self.connection   = in_connection
+		self._init_db_()
+
+	def _init_db_(self):
+		if self.connection is not None:
+			sql = "CREATE TABLE IF NOT EXISTS {} " \
+			      "(" \
+			      " ID         INTEGER PRIMARY KEY NOT NULL, " \
+			      " type       TEXT, " \
+			      " struct     TEXT, " \
+			      " cat        TEXT" \
+			      " scat       TEXT" \
+			      ")".format(TABLE_CAT_FIELDS)
+			self.connection.exec_create(sql)
