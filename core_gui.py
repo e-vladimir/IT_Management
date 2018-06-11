@@ -1,5 +1,5 @@
 # GUI-обёртка для нужных объектов
-# V1-20180201
+# V1-20180611
 
 from   PySide.QtCore import *
 from   PySide.QtGui  import *
@@ -19,16 +19,12 @@ class CApplication(QApplication):
 		super(CApplication, self).__init__(sys.argv)
 
 		self.__init_paths__()
-		self.__init_forms__()
 
 	def __init_paths__(self):
-		self.PATH_COMMON      = "{0}".format(os.path.abspath(__file__))
+		self.PATH_COMMON      = "{0}".format(os.path.dirname(__file__))
 		self.PATH_ICONS       = "{0}/icons/".format(self.PATH_COMMON)
 		self.PATH_ICONS_SMALL = "{0}/small/".format(self.PATH_ICONS)
 		self.PATH_ICONS_TOOLBAR = "{0}/toolbar/".format(self.PATH_ICONS)
-
-	def __init_forms__(self):
-		pass
 
 
 class CForm(QMainWindow):
