@@ -108,6 +108,23 @@ class CCatFields(CMeta):
 			      ")".format(TABLE_CAT_FIELDS)
 			self.connection.exec_create(sql)
 
+	def get_list(self, filter_object=None, filter_struct=None, filter_cat=None, filter_scat=None):
+		sql = "SELECT id " \
+		      "FROM {} " \
+		      "ORDER BY id ".format(TABLE_CAT_FIELDS)
+
+		if not ((filter_object is None) and (filter_struct is None) and (filter_cat is None) and (filter_scat is None)):
+			sql += "WHERE ("
+
+			if filter_object is not None: sql += "(type_obj = {})".format(filter_object)
+			if filter_struct is not None: sql += "(struct   = {})".format(filter_struct)
+			if filter_cat    is not None: sql += "(cat      = {})".format(filter_cat)
+			if filter_scat   is not None: sql += "(scat     = {})".format(filter_scat)
+
+			sql += ")"
+
+		return self.connection.get_list(sql)
+
 
 class CCatField(CMeta):
 	id       = None

@@ -8,12 +8,6 @@ class FormCatalogsFields(CForm):
 
 	model_fields = QStandardItemModel
 
-	def __init__(self, in_application=None):
-		super(FormCatalogsFields, self).__init__(in_application)
-
-		self.CatFields = CCatFields(self.application.sql_connection)
-		self.CatField  = CCatField(self.application.sql_connection)
-
 	def __init_icons__(self):
 		self.icon_small_row_insert  = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
 		self.icon_small_row_delete  = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
@@ -44,10 +38,14 @@ class FormCatalogsFields(CForm):
 		self.menuBar().addMenu(self.menu_actions)
 		self.menuBar().addMenu(self.menu_fields)
 
+	def __init_objects__(self):
+		self.model_fields = QStandardItemModel()
+
+		self.CatFields = CCatFields(self.application.sql_connection)
+		self.CatField  = CCatField(self.application.sql_connection)
+
 	def __init_ui__(self):
 		super(FormCatalogsFields, self).__init_ui__()
-
-		self.model_fields = QStandardItemModel()
 
 		self.setMinimumSize(640, 480)
 		self.setWindowTitle("Каталог - характеристики")
@@ -57,7 +55,11 @@ class FormCatalogsFields(CForm):
 
 		self.setCentralWidget(self.table_fields)
 
+		self.setContentsMargins(3, 3, 3, 3)
+
 	def load_and_show(self):
 		self.model_fields.clear()
+
+		id_list_all = self.CatFields.get_list()
 
 		self.show()

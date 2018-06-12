@@ -6,9 +6,7 @@ class FormMain(CForm):
 	equipments = CEquipments
 	equipment  = CEquipment
 
-	def __init__(self, in_application=None):
-		super(FormMain, self).__init__(in_application)
-
+	def __init_objects__(self):
 		self.equipments = CEquipments(self.application.sql_connection)
 		self.equipment  = CEquipment(self.application.sql_connection)
 

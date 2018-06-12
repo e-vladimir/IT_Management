@@ -1,5 +1,5 @@
 # GUI-обёртка для нужных объектов
-# V1-20180611
+# V1-20180612
 
 from   PySide.QtCore import *
 from   PySide.QtGui  import *
@@ -21,9 +21,9 @@ class CApplication(QApplication):
 		self.__init_paths__()
 
 	def __init_paths__(self):
-		self.PATH_COMMON      = "{0}".format(os.path.dirname(__file__))
-		self.PATH_ICONS       = "{0}/icons/".format(self.PATH_COMMON)
-		self.PATH_ICONS_SMALL = "{0}/small/".format(self.PATH_ICONS)
+		self.PATH_COMMON        = "{0}".format(os.path.dirname(__file__))
+		self.PATH_ICONS         = "{0}/icons/".format(self.PATH_COMMON)
+		self.PATH_ICONS_SMALL   = "{0}/small/".format(self.PATH_ICONS)
 		self.PATH_ICONS_TOOLBAR = "{0}/toolbar/".format(self.PATH_ICONS)
 
 
@@ -37,12 +37,17 @@ class CForm(QMainWindow):
 		self.__init_events__()
 
 	def __init_ui__(self):
+		self.__init_objects__()
+
 		self.__init_icons__()
 
 		self.__init_actions__()
 
 		self.__init_menu__()
 		self.__init_toolbar__()
+
+	def __init_objects__(self):
+		pass
 
 	def __init_icons__(self):
 		pass
