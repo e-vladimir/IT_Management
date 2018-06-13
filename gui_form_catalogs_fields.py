@@ -23,6 +23,10 @@ class FormCatalogsFields(CForm):
 		self.action_save_and_close = QAction(self.icon_small_table_save,  "Сохранить и закрыть",     None)
 		self.action_close          = QAction(self.icon_small_table_close, "Закрыть",                 None)
 
+	def __init_events__(self):
+		self.action_field_add.triggered.connect(self.field_add)
+		self.action_field_delete.triggered.connect(self.field_delete)
+
 	def __init_menu__(self):
 		self.menu_actions = QMenu("Действия")
 		self.menu_actions.addAction(self.action_save)
@@ -60,6 +64,31 @@ class FormCatalogsFields(CForm):
 	def load_and_show(self):
 		self.model_fields.clear()
 
+		self.model_fields.setHorizontalHeaderLabels(["Тип объекта", "Раздел", "Категория", "Подкатегория"])
+
 		id_list_all = self.CatFields.get_list()
 
+		self.table_resize()
+
 		self.show()
+
+	def field_add(self):
+		item_object_type = QStandartItemWithID("Объект",       None)
+		item_struct      = QStandartItemWithID("Раздел",       None)
+		item_cat         = QStandartItemWithID("Категория",    None)
+		item_scat        = QStandartItemWithID("Подкатегория", None)
+
+		self.model_fields.appendRow([item_object_type, item_struct, item_cat, item_scat])
+
+		self.table_resize()
+
+	def field_delete(self):
+		pass
+
+	def table_resize(self):
+		self.table_fields.hide()
+
+		self.table_fields.resizeColumnsToContents()
+		self.table_fields.resizeRowsToContents()
+
+		self.table_fields.show()
