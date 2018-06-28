@@ -1,5 +1,5 @@
 # GUI-обёртка для нужных объектов
-# V1-20180612
+# V1-2018-06-20
 
 from   PySide.QtCore import *
 from   PySide.QtGui  import *
@@ -63,6 +63,15 @@ class CForm(QMainWindow):
 
 	def __init_toolbar__(self):
 		pass
+
+	def showCentered(self):
+		screen = self.application.desktop().screenGeometry()
+		scr_width = screen.width()
+		scr_height = screen.height()
+
+		self.move((scr_width - self.width()) / 2, (scr_height - self.height()) / 2)
+
+		self.show()
 
 	def show_message(self, in_message="", in_timeout=1000):
 		self.statusBar().showMessage(in_message, in_timeout)

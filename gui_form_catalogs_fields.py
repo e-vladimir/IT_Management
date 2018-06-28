@@ -16,16 +16,20 @@ class FormCatalogsFields(CForm):
 		self.icon_small_table_close = QIcon(self.application.PATH_ICONS_SMALL + "table_close.png")
 
 	def __init_actions__(self):
-		self.action_field_add      = QAction(self.icon_small_row_insert,  "Добавить характеристику", None)
-		self.action_field_delete   = QAction(self.icon_small_row_delete,  "Удалить характеристику",  None)
+		self.action_field_add_equipment = QAction(self.icon_small_row_insert,  "Оборудование",            None)
+		self.action_field_add_material  = QAction(self.icon_small_row_insert,  "Материал",                None)
+		self.action_field_add_request   = QAction(self.icon_small_row_insert,  "Заявка",                  None)
+		self.action_field_delete        = QAction(self.icon_small_row_delete,  "Удалить характеристику",  None)
 
-		self.action_save           = QAction(self.icon_small_table_save,  "Сохранить",               None)
-		self.action_save_and_close = QAction(self.icon_small_table_save,  "Сохранить и закрыть",     None)
-		self.action_close          = QAction(self.icon_small_table_close, "Закрыть",                 None)
+		self.action_save                = QAction(self.icon_small_table_save,  "Сохранить",               None)
+		self.action_save_and_close      = QAction(self.icon_small_table_save,  "Сохранить и закрыть",     None)
+		self.action_close               = QAction(self.icon_small_table_close, "Закрыть",                 None)
 
 	def __init_events__(self):
-		self.action_field_add.triggered.connect(self.field_add)
+		self.action_field_add_equipment.triggered.connect(self.field_add)
 		self.action_field_delete.triggered.connect(self.field_delete)
+
+		self.action_save.triggered.connect(self.save)
 
 	def __init_menu__(self):
 		self.menu_actions = QMenu("Действия")
@@ -36,7 +40,13 @@ class FormCatalogsFields(CForm):
 
 		self.menu_fields = QMenu("Характеристики")
 
-		self.menu_fields.addAction(self.action_field_add)
+		self.menu_field_add = QMenu("Добавить характеристику")
+		self.menu_field_add.setIcon(self.icon_small_row_insert)
+		self.menu_field_add.addAction(self.action_field_add_equipment)
+		self.menu_field_add.addAction(self.action_field_add_material)
+		self.menu_field_add.addAction(self.action_field_add_request)
+
+		self.menu_fields.addMenu(self.menu_field_add)
 		self.menu_fields.addAction(self.action_field_delete)
 
 		self.menuBar().addMenu(self.menu_actions)
@@ -70,10 +80,10 @@ class FormCatalogsFields(CForm):
 
 		self.table_resize()
 
-		self.show()
+		self.showCentered()
 
-	def field_add(self):
-		item_object_type = QStandartItemWithID("Объект",       None)
+	def field_add(self, in_object_type="Объект"):
+		item_object_type = QStandartItemWithID(in_object_type, None)
 		item_struct      = QStandartItemWithID("Раздел",       None)
 		item_cat         = QStandartItemWithID("Категория",    None)
 		item_scat        = QStandartItemWithID("Подкатегория", None)
@@ -92,3 +102,7 @@ class FormCatalogsFields(CForm):
 		self.table_fields.resizeRowsToContents()
 
 		self.table_fields.show()
+
+	def save(self, in_close=False):
+		if in_close:
+			self.close()
