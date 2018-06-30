@@ -1,5 +1,6 @@
 from core_gui     import *
 from core_objects import *
+from functools import partial
 
 
 class FormCatalogsFields(CForm):
@@ -26,7 +27,9 @@ class FormCatalogsFields(CForm):
 		self.action_close               = QAction(self.icon_small_table_close, "Закрыть",                 None)
 
 	def __init_events__(self):
-		self.action_field_add_equipment.triggered.connect(self.field_add)
+		self.action_field_add_equipment.triggered.connect(partial(self.field_add, "Оборудование"))
+		self.action_field_add_material.triggered.connect(partial(self.field_add, "Материал"))
+		self.action_field_add_request.triggered.connect(partial(self.field_add, "Заявка"))
 		self.action_field_delete.triggered.connect(self.field_delete)
 
 		self.action_save.triggered.connect(self.save)
@@ -84,6 +87,8 @@ class FormCatalogsFields(CForm):
 
 	def field_add(self, in_object_type="Объект"):
 		item_object_type = QStandartItemWithID(in_object_type, None)
+		item_object_type.setEditable(False)
+		item_object_type.setBackground(Qt.lightGray)
 		item_struct      = QStandartItemWithID("Раздел",       None)
 		item_cat         = QStandartItemWithID("Категория",    None)
 		item_scat        = QStandartItemWithID("Подкатегория", None)
