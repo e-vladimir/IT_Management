@@ -34,13 +34,13 @@ class CFields(CMeta):
 
 
 class CField(CMeta):
-	id     = ""
-	id_obj = ""
-	cat    = ""
-	scat   = ""
-	value  = ""
+	id       = ""
+	id_obj   = ""
+	cat      = ""
+	scat     = ""
+	value    = ""
 
-	struct = ""
+	obj_type = ""
 
 
 # Объекты

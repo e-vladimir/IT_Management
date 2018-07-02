@@ -1,10 +1,9 @@
 from core_gui     import *
 from core_objects import *
-from functools import partial
 
 
 class QItemModelIcon(QStandartItemWithID):
-	def __init__(self,  in_caption, in_id="", in_editable=True, in_icon=None):
+	def __init__(self,  in_caption, in_id=None, in_editable=True, in_icon=None):
 		super(QItemModelIcon, self).__init__(in_caption, in_id, in_editable)
 
 		if in_icon is not None:
@@ -31,7 +30,8 @@ class FormCatalogsFields(CForm):
 		self.icon_small_readonly    = QIcon(self.application.PATH_ICONS_SMALL + "bullet_black.png")
 
 	def __init_actions__(self):
-		self.action_field_add       = QAction(self.icon_small_row_insert,  "Добавить характеристику", None)
+		self.action_field_add       = QAction(self.icon_small_row_insert,  "В текущий раздел",        None)
+		self.action_field_add_new   = QAction(self.icon_small_row_insert,  "В новый раздел",          None)
 		self.action_field_delete    = QAction(self.icon_small_row_delete,  "Удалить характеристику",  None)
 
 		self.action_save            = QAction(self.icon_small_table_save,  "Сохранить",               None)
@@ -50,6 +50,8 @@ class FormCatalogsFields(CForm):
 
 		self.menu_fields = QMenu("Характеристики")
 		self.menu_fields.addAction(self.action_field_add)
+		self.menu_fields.addAction(self.action_field_add_new)
+		self.menu_fields.addSeparator()
 		self.menu_fields.addAction(self.action_field_delete)
 
 		self.menuBar().addMenu(self.menu_actions)
@@ -78,33 +80,56 @@ class FormCatalogsFields(CForm):
 		self.model_fields.clear()
 
 		# Базовый набор Оборудование
-		item_group_equipment    = QItemModelIcon("Оборудование",         None, False, self.icon_small_readonly)
-		item_category_equipment = QItemModelIcon("Основные параметры",           None, False, self.icon_small_readonly)
-		item_category_equipment.appendRow(QItemModelIcon("Категория",            None, False, self.icon_small_readonly))
-		item_category_equipment.appendRow(QItemModelIcon("Подкатегория",         None, False, self.icon_small_readonly))
-		item_category_equipment.appendRow(QItemModelIcon("Статус",               None, False, self.icon_small_readonly))
-		item_group_equipment.appendRow(item_category_equipment)
+		item_group    = QItemModelIcon("Оборудование",         None, False, self.icon_small_readonly)
+		item_group.setFont(FONT_BOLD)
 
-		item_category_equipment = QItemModelIcon("Техническое описание", None, False, self.icon_small_readonly)
-		item_category_equipment.appendRow(QItemModelIcon("Производитель",        None, False, self.icon_small_readonly))
-		item_category_equipment.appendRow(QItemModelIcon("Модель",               None, False, self.icon_small_readonly))
-		item_category_equipment.appendRow(QItemModelIcon("Серийный номер",       None, False, self.icon_small_readonly))
-		item_category_equipment.appendRow(QItemModelIcon("Техническое описание", None, False, self.icon_small_readonly))
-		item_category_equipment.appendRow(QItemModelIcon("Состояние",            None, False, self.icon_small_readonly))
-		item_group_equipment.appendRow(item_category_equipment)
+		item_category = QItemModelIcon("Основные параметры",           None, False, self.icon_small_readonly)
+		item_category.appendRow(QItemModelIcon("Категория",            None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Подкатегория",         None, False, self.icon_small_readonly))
+		item_group.appendRow(item_category)
 
-		item_category_equipment = QItemModelIcon("Местоположение",       None, False, self.icon_small_readonly)
-		item_category_equipment.appendRow(QItemModelIcon("Подразделение",        None, False, self.icon_small_readonly))
-		item_category_equipment.appendRow(QItemModelIcon("Местоположение",       None, False, self.icon_small_readonly))
-		item_category_equipment.appendRow(QItemModelIcon("Ответственное лицо",   None, False, self.icon_small_readonly))
-		item_group_equipment.appendRow(item_category_equipment)
+		item_category = QItemModelIcon("Техническое описание", None, False, self.icon_small_readonly)
+		item_category.appendRow(QItemModelIcon("Производитель",        None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Модель",               None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Серийный номер",       None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Техническое описание", None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Состояние",            None, False, self.icon_small_readonly))
+		item_group.appendRow(item_category)
 
-		self.model_fields.appendRow(item_group_equipment)
+		item_category = QItemModelIcon("Местоположение",       None, False, self.icon_small_readonly)
+		item_category.appendRow(QItemModelIcon("Подразделение",        None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Местоположение",       None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Ответственное лицо",   None, False, self.icon_small_readonly))
+		item_group.appendRow(item_category)
+
+		self.model_fields.appendRow(item_group)
+
+		# Базовый набор Материал
+		item_group    = QItemModelIcon("Материал",         None, False, self.icon_small_readonly)
+		item_group.setFont(FONT_BOLD)
+
+		item_category = QItemModelIcon("Основные параметры",           None, False, self.icon_small_readonly)
+		item_category.appendRow(QItemModelIcon("Категория",            None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Подкатегория",         None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Количество",               None, False, self.icon_small_readonly))
+		item_group.appendRow(item_category)
+
+		item_category = QItemModelIcon("Техническое описание", None, False, self.icon_small_readonly)
+		item_category.appendRow(QItemModelIcon("Производитель",        None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Модель",               None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Техническое описание", None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Состояние",            None, False, self.icon_small_readonly))
+		item_group.appendRow(item_category)
+
+		item_category = QItemModelIcon("Местоположение",       None, False, self.icon_small_readonly)
+		item_category.appendRow(QItemModelIcon("Подразделение",        None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Местоположение",       None, False, self.icon_small_readonly))
+		item_category.appendRow(QItemModelIcon("Ответственное лицо",   None, False, self.icon_small_readonly))
+		item_group.appendRow(item_category)
+
+		self.model_fields.appendRow(item_group)
 
 		self.tree_fields.header().hide()
-
-		id_list_all = self.CatFields.get_list()
-
 		self.showCentered()
 
 	def save(self, in_close=False):
