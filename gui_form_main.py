@@ -29,6 +29,9 @@ class FormMain(CForm):
 
 	def __init_events__(self):
 		self.action_menu_tab_equipments.triggered.connect(self.select_tab_equipments)
+		self.action_menu_tab_materials.triggered.connect(self.select_tab_materials)
+		self.action_menu_tab_requests.triggered.connect(self.select_tab_requests)
+		self.action_menu_tab_transactions.triggered.connect(self.select_tab_transactions)
 
 		self.action_menu_catalog_fields.triggered.connect(self.application.form_catalogs_fields.load_and_show)
 
@@ -57,3 +60,12 @@ class FormMain(CForm):
 
 	def select_tab_equipments(self):
 		self.menu_tabs.setTitle("Оборудование")
+
+	def select_tab_materials(self):
+		self.menu_tabs.setTitle("Материалы")
+
+	def select_tab_requests(self):
+		self.menu_tabs.setTitle("Заявки")
+
+	def select_tab_transactions(self):
+		self.menu_tabs.setTitle("Транзакции")
