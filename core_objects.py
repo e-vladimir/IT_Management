@@ -20,6 +20,8 @@ class CMeta:
 
 # Характеристики
 class CFields(CMeta):
+	fields_list = dict()
+
 	def _init_db_(self):
 		if self.connection is not None:
 			sql = "CREATE TABLE IF NOT EXISTS {} " \
@@ -32,6 +34,20 @@ class CFields(CMeta):
 			      ")".format(TABLE_OBJ_FIELDS)
 			self.connection.exec_create(sql)
 
+	def clear(self):
+		self.fields_list = dict()
+
+	def get(self, in_field_name):
+		if in_field_name in self.fields_list:
+			return self.fields_list[in_field_name]
+		else:
+			return None
+
+	def set(self, in_field_name, in_field_value=""):
+		""" in_field_name = <Категория>/<Подкатегория> """
+		if in_field_name in self.fields_list:
+			self.fields_list[in_field_name] = in_field_value
+
 
 class CField(CMeta):
 	id       = ""
@@ -39,8 +55,6 @@ class CField(CMeta):
 	cat      = ""
 	scat     = ""
 	value    = ""
-
-	obj_type = ""
 
 
 # Объекты
@@ -72,15 +86,8 @@ class CMetaObject(CMeta):
 
 		self.fields = CFields(self.connection)
 
-	def set_field(self, in_field="", in_value=""):
-		self.fields[in_field] = in_value
-
-	def get_field(self, in_field=""):
-		if in_field in self.fields:	return self.fields[in_field]
-		else:           			return None
-
 	def clear(self, in_clearID=False):
-		self.fields = dict()
+		self.fields.clear()
 		self.note   = ""
 
 		if in_clearID: self.id = None
@@ -93,6 +100,22 @@ class CEquipments(CMetaObjects):
 class CEquipment(CMetaObject):
 	type = EQUIPMENT
 
+	def clear(self, in_clearID=False):
+		super(CEquipment, self).clear(in_clearID)
+
+		self.fields.set("Основные параметры/Категория",              "")
+		self.fields.set("Основные параметры/Подкатегория",           "")
+
+		self.fields.set("Техническое описание/Производитель",        "")
+		self.fields.set("Техническое описание/Модель",               "")
+		self.fields.set("Техническое описание/Серийный номер",       "")
+		self.fields.set("Техническое описание/Техническое описание", "")
+		self.fields.set("Техническое описание/Состояние",            "")
+
+		self.fields.set("Местоположение/Подразделение",              "")
+		self.fields.set("Местоположение/Местоположение",             "")
+		self.fields.set("Местоположение/Ответственное лицо",         "")
+
 
 # Справочник характеристик
 class CCatFields(CMeta):
@@ -102,7 +125,6 @@ class CCatFields(CMeta):
 			      "(" \
 			      " ID         INTEGER PRIMARY KEY NOT NULL, " \
 			      " type_obj   TEXT, " \
-			      " struct     TEXT, " \
 			      " cat        TEXT, " \
 			      " scat       TEXT" \
 			      ")".format(TABLE_CAT_FIELDS)
@@ -117,7 +139,6 @@ class CCatFields(CMeta):
 			sql += "WHERE ("
 
 			if filter_object is not None: sql += "(type_obj = {})".format(filter_object)
-			if filter_struct is not None: sql += "(struct   = {})".format(filter_struct)
 			if filter_cat    is not None: sql += "(cat      = {})".format(filter_cat)
 			if filter_scat   is not None: sql += "(scat     = {})".format(filter_scat)
 
@@ -130,7 +151,7 @@ class CCatField(CMeta):
 	id       = None
 
 	type_obj = ""
-	struct   = ""
+
 	cat      = ""
 	scat     = ""
 
@@ -138,6 +159,5 @@ class CCatField(CMeta):
 		if in_clear_id: self.id = None
 
 		self.type_obj = ""
-		self.struct   = ""
 		self.cat      = ""
 		self.scat     = ""
