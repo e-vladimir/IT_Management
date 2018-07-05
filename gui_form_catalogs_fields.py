@@ -2,66 +2,11 @@ from core_gui     import *
 from core_objects import *
 
 
-class QItemModelIcon(QStandartItemWithID):
-	def __init__(self,  in_caption, in_id=None, in_editable=True, in_icon=None):
-		super(QItemModelIcon, self).__init__(in_caption, in_id, in_editable)
-
-		if in_icon is not None:
-			self.setIcon(in_icon)
-
-
 class FormCatalogsFields(CForm):
-	CatFields = CCatFields
-	CatField  = CCatField
-
 	model_fields = QStandardItemModel
-
-	current_type  = None
-	current_group = None
-	current_field = None
-
-	def __init_icons__(self):
-		self.icon_small_row_insert  = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
-		self.icon_small_row_delete  = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
-
-		self.icon_small_table_save  = QIcon(self.application.PATH_ICONS_SMALL + "table_save.png")
-		self.icon_small_table_close = QIcon(self.application.PATH_ICONS_SMALL + "table_close.png")
-
-		self.icon_small_readonly    = QIcon(self.application.PATH_ICONS_SMALL + "bullet_black.png")
-
-	def __init_actions__(self):
-		self.action_field_add       = QAction(self.icon_small_row_insert,  "В текущий раздел",        None)
-		self.action_field_add_new   = QAction(self.icon_small_row_insert,  "В новый раздел",          None)
-		self.action_field_delete    = QAction(self.icon_small_row_delete,  "Удалить характеристику",  None)
-
-		self.action_save            = QAction(self.icon_small_table_save,  "Сохранить",               None)
-		self.action_save_and_close  = QAction(self.icon_small_table_save,  "Сохранить и закрыть",     None)
-		self.action_close           = QAction(self.icon_small_table_close, "Закрыть",                 None)
-
-	def __init_events__(self):
-		self.action_save.triggered.connect(self.save)
-
-	def __init_menu__(self):
-		self.menu_actions = QMenu("Действия")
-		self.menu_actions.addAction(self.action_save)
-		self.menu_actions.addAction(self.action_save_and_close)
-		self.menu_actions.addSeparator()
-		self.menu_actions.addAction(self.action_close)
-
-		self.menu_fields = QMenu("Характеристики")
-		self.menu_fields.addAction(self.action_field_add)
-		self.menu_fields.addAction(self.action_field_add_new)
-		self.menu_fields.addSeparator()
-		self.menu_fields.addAction(self.action_field_delete)
-
-		self.menuBar().addMenu(self.menu_actions)
-		self.menuBar().addMenu(self.menu_fields)
 
 	def __init_objects__(self):
 		self.model_fields = QStandardItemModel()
-
-		self.CatFields = CCatFields(self.application.sql_connection)
-		self.CatField  = CCatField(self.application.sql_connection)
 
 	def __init_ui__(self):
 		super(FormCatalogsFields, self).__init_ui__()
@@ -69,69 +14,71 @@ class FormCatalogsFields(CForm):
 		self.setMinimumSize(640, 480)
 		self.setWindowTitle("Каталог - характеристики")
 
-		self.tree_fields = QTreeView()
-		self.tree_fields.setModel(self.model_fields)
+		tree_fields = QTreeView()
+		tree_fields.setModel(self.model_fields)
 
-		self.setCentralWidget(self.tree_fields)
+		self.setCentralWidget(tree_fields)
 
-		self.setContentsMargins(3, 3, 3, 3)
+	def __init_icons__(self):
+		self.icon_field_add    = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
+		self.icon_field_delete = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
 
-	def load_and_show(self):
+		self.icon_save         = QIcon(self.application.PATH_ICONS_SMALL + "table_save.png")
+		self.icon_close        = QIcon(self.application.PATH_ICONS_SMALL + "table_close.png")
+
+	def __init_actions__(self):
+		self.action_save           = QAction(self.icon_save,         "Сохранить",               None)
+		self.action_save_close     = QAction(self.icon_save,         "Сохранить и закрыть",     None)
+		self.action_close          = QAction(self.icon_close,        "Закрыть",                 None)
+
+		self.action_field_add      = QAction(self.icon_field_add,    "Добавить",                None)
+		self.action_field_add_new  = QAction(self.icon_field_add,    "Добавить в новый раздел", None)
+		self.action_field_delete   = QAction(self.icon_field_delete, "Удалить",                 None)
+
+	def __init_events__(self):
+		self.action_field_add.triggered.connect(self.click_field_add)
+		self.action_field_add_new.triggered.connect(self.click_field_add_new)
+		self.action_field_delete.triggered.connect(self.click_field_delete)
+
+	def __init_menu__(self):
+		menu_main = QMenu("Действия")
+		menu_main.addAction(self.action_save)
+		menu_main.addAction(self.action_save_close)
+		menu_main.addSeparator()
+		menu_main.addAction(self.action_close)
+
+		menu_fields = QMenu("Характеристики")
+		menu_fields.addAction(self.action_field_add)
+		menu_fields.addAction(self.action_field_add_new)
+		menu_fields.addSeparator()
+		menu_fields.addAction(self.action_field_delete)
+
+		self.menuBar().addMenu(menu_main)
+		self.menuBar().addMenu(menu_fields)
+
+	def load(self):
 		self.model_fields.clear()
 
-		# Базовый набор Оборудование
-		item_group    = QItemModelIcon("Оборудование",         None, False, self.icon_small_readonly)
-		item_group.setFont(FONT_BOLD)
-
-		item_category = QItemModelIcon("Основные параметры",           None, False, self.icon_small_readonly)
-		item_category.appendRow(QItemModelIcon("Категория",            None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Подкатегория",         None, False, self.icon_small_readonly))
-		item_group.appendRow(item_category)
-
-		item_category = QItemModelIcon("Техническое описание", None, False, self.icon_small_readonly)
-		item_category.appendRow(QItemModelIcon("Производитель",        None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Модель",               None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Серийный номер",       None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Техническое описание", None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Состояние",            None, False, self.icon_small_readonly))
-		item_group.appendRow(item_category)
-
-		item_category = QItemModelIcon("Местоположение",       None, False, self.icon_small_readonly)
-		item_category.appendRow(QItemModelIcon("Подразделение",        None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Местоположение",       None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Ответственное лицо",   None, False, self.icon_small_readonly))
-		item_group.appendRow(item_category)
-
-		self.model_fields.appendRow(item_group)
-
-		# Базовый набор Материал
-		item_group    = QItemModelIcon("Материал",         None, False, self.icon_small_readonly)
-		item_group.setFont(FONT_BOLD)
-
-		item_category = QItemModelIcon("Основные параметры",           None, False, self.icon_small_readonly)
-		item_category.appendRow(QItemModelIcon("Категория",            None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Подкатегория",         None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Количество",               None, False, self.icon_small_readonly))
-		item_group.appendRow(item_category)
-
-		item_category = QItemModelIcon("Техническое описание", None, False, self.icon_small_readonly)
-		item_category.appendRow(QItemModelIcon("Производитель",        None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Модель",               None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Техническое описание", None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Состояние",            None, False, self.icon_small_readonly))
-		item_group.appendRow(item_category)
-
-		item_category = QItemModelIcon("Местоположение",       None, False, self.icon_small_readonly)
-		item_category.appendRow(QItemModelIcon("Подразделение",        None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Местоположение",       None, False, self.icon_small_readonly))
-		item_category.appendRow(QItemModelIcon("Ответственное лицо",   None, False, self.icon_small_readonly))
-		item_group.appendRow(item_category)
-
-		self.model_fields.appendRow(item_group)
-
-		self.tree_fields.header().hide()
+	def load_and_show(self):
+		self.load()
 		self.showCentered()
 
-	def save(self, in_close=False):
-		if in_close:
-			self.close()
+	def click_field_add(self, in_category=None):
+		if in_category is not None:
+			new_field    = "Характеристика"
+
+			new_field, result = QInputDialog.getText(self, "Новая характеристика", in_category, text=new_field)
+
+			if result:
+				self.model_fields.appendRow(QStandartItemWithID("{0}/{1}".format(in_category, new_field), None))
+
+	def click_field_add_new(self):
+		new_category = "Новая категория"
+
+		new_category, result = QInputDialog.getText(self, "Новая категория", "Укажите названае новой категории", text=new_category)
+
+		if result:
+			self.click_field_add(new_category)
+
+	def click_field_delete(self):
+		pass

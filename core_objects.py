@@ -103,19 +103,6 @@ class CEquipment(CMetaObject):
 	def clear(self, in_clearID=False):
 		super(CEquipment, self).clear(in_clearID)
 
-		self.fields.set("Основные параметры/Категория",              "")
-		self.fields.set("Основные параметры/Подкатегория",           "")
-
-		self.fields.set("Техническое описание/Производитель",        "")
-		self.fields.set("Техническое описание/Модель",               "")
-		self.fields.set("Техническое описание/Серийный номер",       "")
-		self.fields.set("Техническое описание/Техническое описание", "")
-		self.fields.set("Техническое описание/Состояние",            "")
-
-		self.fields.set("Местоположение/Подразделение",              "")
-		self.fields.set("Местоположение/Местоположение",             "")
-		self.fields.set("Местоположение/Ответственное лицо",         "")
-
 
 # Справочник характеристик
 class CCatFields(CMeta):
@@ -124,7 +111,6 @@ class CCatFields(CMeta):
 			sql = "CREATE TABLE IF NOT EXISTS {} " \
 			      "(" \
 			      " ID         INTEGER PRIMARY KEY NOT NULL, " \
-			      " type_obj   TEXT, " \
 			      " cat        TEXT, " \
 			      " scat       TEXT" \
 			      ")".format(TABLE_CAT_FIELDS)

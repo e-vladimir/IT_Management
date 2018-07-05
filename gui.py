@@ -32,6 +32,6 @@ class AppManage(CApplication):
 
 app = AppManage()
 # app.form_main.showMaximized()
-# app.form_catalogs_fields.load_and_show()
-app.form_object.showCentered()
+app.form_catalogs_fields.load_and_show()
+# app.form_object.showCentered()
 sys.exit(app.exec_())

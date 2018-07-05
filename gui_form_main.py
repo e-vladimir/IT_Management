@@ -33,7 +33,7 @@ class FormMain(CForm):
 		self.action_menu_tab_requests.triggered.connect(self.select_tab_requests)
 		self.action_menu_tab_transactions.triggered.connect(self.select_tab_transactions)
 
-		self.action_menu_catalog_fields.triggered.connect(self.application.form_catalogs_fields.load_and_show)
+		self.action_menu_catalog_fields.triggered.connect(self.application.form_catalogs_fields.show)
 
 	def __init_ui__(self):
 		super(FormMain, self).__init_ui__()
