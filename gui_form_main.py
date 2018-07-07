@@ -3,69 +3,20 @@ from core_objects import *
 
 
 class FormMain(CForm):
-	equipments = CEquipments
-	equipment  = CEquipment
-
-	def __init_objects__(self):
-		self.equipments = CEquipments(self.application.sql_connection)
-		self.equipment  = CEquipment(self.application.sql_connection)
-
 	def __init_icons__(self):
-		self.icon_small_equipments   = QIcon(self.application.PATH_ICONS_SMALL + "equipments.png")
-		self.icon_small_materials    = QIcon(self.application.PATH_ICONS_SMALL + "materials.png")
-		self.icon_small_requests     = QIcon(self.application.PATH_ICONS_SMALL + "requests.png")
-		self.icon_small_transactions = QIcon(self.application.PATH_ICONS_SMALL + "transactions.png")
-
-		self.icon_small_catalog      = QIcon(self.application.PATH_ICONS_SMALL + "cats.png")
-		self.icon_small_fields       = QIcon(self.application.PATH_ICONS_SMALL + "fields.png")
+		self.icon_small_equipment = QIcon(self.application.PATH_ICONS_SMALL + "equipments.png")
 
 	def __init_actions__(self):
-		self.action_menu_tab_equipments   = QAction(self.icon_small_equipments,   "Оборудование",   None)
-		self.action_menu_tab_materials    = QAction(self.icon_small_materials,    "Материалы",      None)
-		self.action_menu_tab_requests     = QAction(self.icon_small_requests,     "Заявки",         None)
-		self.action_menu_tab_transactions = QAction(self.icon_small_transactions, "Транзакции",     None)
-
-		self.action_menu_catalog_fields   = QAction(self.icon_small_fields,       "Характеристики", None)
-
-	def __init_events__(self):
-		self.action_menu_tab_equipments.triggered.connect(self.select_tab_equipments)
-		self.action_menu_tab_materials.triggered.connect(self.select_tab_materials)
-		self.action_menu_tab_requests.triggered.connect(self.select_tab_requests)
-		self.action_menu_tab_transactions.triggered.connect(self.select_tab_transactions)
-
-		self.action_menu_catalog_fields.triggered.connect(self.application.form_catalogs_fields.show)
-
-	def __init_ui__(self):
-		super(FormMain, self).__init_ui__()
-
-		self.setMinimumSize(640, 480)
-		self.setWindowTitle("IT-management - {0}".format(self.application.version))
+		self.action_select_equipment = QAction(self.icon_small_equipment, "Учёт ОС и ТМЦ", None)
 
 	def __init_menu__(self):
-		self.menu_tabs = QMenu("Раздел")
-		self.menu_tabs.addAction(self.action_menu_tab_equipments)
-		self.menu_tabs.addAction(self.action_menu_tab_materials)
-		self.menu_tabs.addAction(self.action_menu_tab_requests)
-		self.menu_tabs.addAction(self.action_menu_tab_transactions)
+		self.menu_sections = QMenu("Раздел")
+		self.menu_sections.addAction(self.action_select_equipment)
 
-		self.menu_catalogs = QMenu("Каталоги")
-		self.menu_catalogs.setIcon(self.icon_small_catalog)
-		self.menu_catalogs.addAction(self.action_menu_catalog_fields)
+		self.menuBar().addMenu(self.menu_sections)
 
-		self.menu_service = QMenu("Сервис")
-		self.menu_service.addMenu(self.menu_catalogs)
+	def __init_events__(self):
+		self.action_select_equipment.triggered.connect(self.select_equipment)
 
-		self.menuBar().addMenu(self.menu_tabs)
-		self.menuBar().addMenu(self.menu_service)
-
-	def select_tab_equipments(self):
-		self.menu_tabs.setTitle("Оборудование")
-
-	def select_tab_materials(self):
-		self.menu_tabs.setTitle("Материалы")
-
-	def select_tab_requests(self):
-		self.menu_tabs.setTitle("Заявки")
-
-	def select_tab_transactions(self):
-		self.menu_tabs.setTitle("Транзакции")
+	def select_equipment(self):
+		self.menu_sections.setTitle(self.action_select_equipment.text())

@@ -1,5 +1,5 @@
 # GUI-обёртка для нужных объектов
-# V1-2018-07-30
+# V1-2018-07-06
 
 from   PySide.QtCore import *
 from   PySide.QtGui  import *
@@ -78,13 +78,17 @@ class CForm(QMainWindow):
 
 
 class QStandartItemWithID(QStandardItem):
-	id = ""
+	id  = ""
+	tag = ""
 
 	def __init__(self, in_caption, in_id="", in_editable=True):
 		super(QStandartItemWithID, self).__init__(in_caption)
 
 		self.id = in_id
 		self.setEditable(in_editable)
+
+	def setTag(self, in_tag=""):
+		self.tag = in_tag
 
 
 class QLabelR(QLabel):
