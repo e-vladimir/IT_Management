@@ -3,17 +3,29 @@ from core_objects import *
 
 
 class FormCatalogFields(CForm):
-	_fields = CCatalogFields
-	_field  = CCatalogField
+	_groups      = CCatalogFieldGroups
+	_group       = CCatalogFieldGroup
+
+	model_fields = QStandardItemModel
+	tree_fields  = QTreeView
 
 	def __init_objects__(self):
-		self._object = CMetaObject(self.application.sql_connection)
+		self._groups      = CCatalogFieldGroups(self.application.sql_connection)
+		self._group       = CCatalogFieldGroup(self.application.sql_connection)
+
+		self.model_fields = QStandardItemModel()
 
 	def __init_ui__(self):
 		super(FormCatalogFields, self).__init_ui__()
 
 		self.setWindowTitle("Каталог характеристик")
 		self.setMinimumSize(480, 640)
+
+		self.tree_fields = QTreeView()
+		self.tree_fields.setModel(self.model_fields)
+		self.tree_fields.header().hide()
+
+		self.setCentralWidget(self.tree_fields)
 
 	def __init_icons__(self):
 		self.icon_small_insert = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
@@ -58,3 +70,38 @@ class FormCatalogFields(CForm):
 		self.menuBar().addMenu(menu_main)
 		self.menuBar().addMenu(menu_fields)
 		self.menuBar().addMenu(menu_service)
+
+	def __init_events__(self):
+		self.action_save.triggered.connect(self.save)
+		self.action_defaults.triggered.connect(self.service_defaults)
+
+	def service_defaults(self):
+		item_group = QStandartItemWithID("Общее описание", None)
+		item_group.appendRow(QStandartItemWithID("Производитель",        None))
+		item_group.appendRow(QStandartItemWithID("Модель",               None))
+		item_group.appendRow(QStandartItemWithID("Серийный номер",       None))
+		item_group.appendRow(QStandartItemWithID("Техническое описание", None))
+		item_group.appendRow(QStandartItemWithID("Состояние",            None))
+		self.model_fields.appendRow(item_group)
+
+		item_group = QStandartItemWithID("Местоположение", None)
+		item_group.appendRow(QStandartItemWithID("Подразделение",        None))
+		item_group.appendRow(QStandartItemWithID("Местоположение",       None))
+		item_group.appendRow(QStandartItemWithID("Сотрудник",            None))
+		self.model_fields.appendRow(item_group)
+
+	def save(self):
+		for index_row in range(self.model_fields.rowCount()):
+			item_group = self.model_fields.item(index_row)
+			group = item_group.text()
+
+			self._group.clear(True)
+			self._group.name = group
+
+			for index_fields in range(item_group.rowCount()):
+				item_field = item_group.child(index_fields)
+				field = item_field.text()
+
+				self._group.fields.set_field("Характеристика/{0}".format(index_fields), field)
+
+			self._group.save()

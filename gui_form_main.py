@@ -15,14 +15,14 @@ class FormMain(CForm):
 		self.menu_sections = QMenu("Раздел")
 		self.menu_sections.addAction(self.action_select_equipment)
 
-		self.menuBar().addMenu(self.menu_sections)
-
 		self.menu_equipment_catalogs = QMenu("Каталоги")
 		self.menu_equipment_catalogs.addAction(self.action_catalogs_fields)
+
+		self.menuBar().addMenu(self.menu_sections)
+		self.menuBar().addMenu(self.menu_equipment_catalogs)
 
 	def __init_events__(self):
 		self.action_select_equipment.triggered.connect(self.select_equipment)
 
 	def select_equipment(self):
 		self.menu_sections.setTitle(self.action_select_equipment.text())
-		self.menuBar().addMenu(self.menu_equipment_catalogs)

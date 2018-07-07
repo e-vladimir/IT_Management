@@ -107,6 +107,9 @@ class CMetaFields(CMeta):
 	def set_field(self, in_field, in_value=""):
 		self._fields[in_field] = in_value
 
+	def clear(self):
+		self._fields = dict()
+
 
 class CMetaObject(CMeta):
 	fields = CMetaFields
@@ -148,13 +151,14 @@ class CMetaObject(CMeta):
 			      "  note" \
 			      ") " \
 			      "VALUES (" \
-			      "  '{0}', " \
-			      "  '{1}'" \
+			      "  '{1}', " \
+			      "  '{2}'" \
 			      ")".format(TABLE_META, self.type, self.note)
-			self.exec_insert(sql)
+			self.connection.exec_insert(sql)
 
 			sql = "SELECT last_insert_rowid()"
 			self.id = self.connection.get_single(sql)
+
 		else:
 			sql = "UPDATE {0} " \
 			      "SET" \
@@ -162,13 +166,14 @@ class CMetaObject(CMeta):
 			      "  note = '{2}' " \
 			      "WHERE " \
 			      "  id = '{3}'".format(TABLE_META, self.type, self.note, self.id)
-			self.connection.exec_updadte(sql)
+			self.connection.exec_update(sql)
 
+		self.fields._id_obj = self.id
 		self.fields.save()
 
 
 # Базовые классы
-class CCatalogFields(CMeta):
+class CCatalogFieldGroups(CMeta):
 	def get_groups(self):
 		sql = "SELECT DISTINCT " \
 		      "  id " \
@@ -178,17 +183,26 @@ class CCatalogFields(CMeta):
 		return self.connection.get_list(sql)
 
 
-class CCatalogField(CMetaObject):
+class CCatalogFieldGroup(CMetaObject):
 	type = CATALOG_FIELDS_GROUP
+	name = ""
+
+	def save(self):
+		self.fields.set_field("Название", self.name)
+		self.id = self._get_id(self.name)
+
+		super(CCatalogFieldGroup, self).save()
 
 	def load(self, in_id_or_name=None):
 		if   type(in_id_or_name) == int:
 			self.id = in_id_or_name
 		elif type(in_id_or_name) == str:
-			self.id = self._get_id(in_id_or_name)
+			self.id   = self._get_id(in_id_or_name)
 			
 		if self.id is not None:
-			super(CCatalogField, self).load()
+			self.clear()
+			super(CCatalogFieldGroup, self).load()
+			self.name = self.fields.get_field("Название")
 
 	def _get_id(self, in_name=None):
 		sql = "SELECT " \
@@ -199,3 +213,10 @@ class CCatalogField(CMetaObject):
 		      "  value ='{2}'".format(TABLE_FIELDS, CATALOG_FIELDS_GROUP_NAME, in_name)
 		return self.connection.get_single(sql)
 
+	def clear(self, in_clear_id=False):
+		if in_clear_id:
+			self.id = None
+
+		self.name = ""
+		self.note = ""
+		self.fields.clear()
