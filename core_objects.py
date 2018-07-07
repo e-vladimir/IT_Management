@@ -16,9 +16,9 @@ class CMeta:
 	def _init_db_(self):
 		sql = "CREATE TABLE IF NOT EXISTS {0} " \
 		      "(" \
-		      " ID     INTEGER PRIMARY KEY ASC, " \
-		      " type   TEXT, " \
-		      " note   TEXT  " \
+		      "  ID     INTEGER PRIMARY KEY ASC, " \
+		      "  type   TEXT, " \
+		      "  note   TEXT  " \
 		      ")".format(TABLE_META)
 
 		self.connection.exec_create(sql)
@@ -36,10 +36,10 @@ class CMetaFields(CMeta):
 	def _init_db_(self):
 		sql = "CREATE TABLE IF NOT EXISTS {0} " \
 		      "(" \
-		      " ID     INTEGER PRIMARY KEY ASC, " \
-		      " ID_OBJ INTEGER, " \
-		      " type   TEXT, " \
-		      " value  TEXT  " \
+		      "  ID     INTEGER PRIMARY KEY ASC, " \
+		      "  ID_OBJ INTEGER, " \
+		      "  type   TEXT, " \
+		      "  value  TEXT  " \
 		      ")".format(TABLE_FIELDS)
 
 		self.connection.exec_create(sql)
@@ -48,11 +48,11 @@ class CMetaFields(CMeta):
 		self._id_obj = in_id
 
 		sql = "SELECT " \
-		      " type, " \
-		      " value " \
+		      "  type, " \
+		      "  value " \
 		      "FROM {0} " \
 		      "WHERE " \
-		      " (id = '{1}'".format(TABLE_FIELDS, in_id)
+		      "  id = '{1}'".format(TABLE_FIELDS, in_id)
 
 		field_values = self.connection.get_multiple(sql)
 		_type        = field_values[0]
@@ -119,16 +119,21 @@ class CMetaObject(CMeta):
 
 		self.id = None
 
+	def set_connection(self, in_connection=None):
+		super(CMetaObject, self).set_connection(in_connection)
+
+		self.fields = CMetaFields(in_connection)
+
 	def load(self, in_id=None):
 		if in_id is not None:
 			self.id = in_id
 
 		if self.id is not None:
 			sql = "SELECT " \
-			      " type, note " \
+			      "  type, note " \
 			      "FROM {0} " \
 			      "WHERE" \
-			      " (id = {1})".format(TABLE_META, self.id)
+			      "  id = {1}".format(TABLE_META, self.id)
 			_data = self.connection.get_multiple(sql)
 
 			self.type = _data[0]
@@ -139,11 +144,13 @@ class CMetaObject(CMeta):
 	def save(self):
 		if self.id is None:
 			sql = "INSERT INTO {0} (" \
-			      " type,  " \
-			      " note)  " \
+			      "  type,  " \
+			      "  note" \
+			      ") " \
 			      "VALUES (" \
-			      " '{0}', " \
-			      " '{1}' )".format(TABLE_META, self.type, self.note)
+			      "  '{0}', " \
+			      "  '{1}'" \
+			      ")".format(TABLE_META, self.type, self.note)
 			self.exec_insert(sql)
 
 			sql = "SELECT last_insert_rowid()"
@@ -151,10 +158,44 @@ class CMetaObject(CMeta):
 		else:
 			sql = "UPDATE {0} " \
 			      "SET" \
-			      " type = '{1}', " \
-			      " note = '{2}' " \
+			      "  type = '{1}', " \
+			      "  note = '{2}' " \
 			      "WHERE " \
-			      " id = '{3}'".format(TABLE_META, self.type, self.note, self.id)
+			      "  id = '{3}'".format(TABLE_META, self.type, self.note, self.id)
 			self.connection.exec_updadte(sql)
 
 		self.fields.save()
+
+
+# Базовые классы
+class CCatalogFields(CMeta):
+	def get_groups(self):
+		sql = "SELECT DISTINCT " \
+		      "  id " \
+		      "FROM {0} " \
+		      "WHERE " \
+		      "  type='{1}'".format(TABLE_FIELDS, CATALOG_FIELDS_GROUP)
+		return self.connection.get_list(sql)
+
+
+class CCatalogField(CMetaObject):
+	type = CATALOG_FIELDS_GROUP
+
+	def load(self, in_id_or_name=None):
+		if   type(in_id_or_name) == int:
+			self.id = in_id_or_name
+		elif type(in_id_or_name) == str:
+			self.id = self._get_id(in_id_or_name)
+			
+		if self.id is not None:
+			super(CCatalogField, self).load()
+
+	def _get_id(self, in_name=None):
+		sql = "SELECT " \
+		      "  ID_OBJ " \
+		      "FROM {0} " \
+		      "WHERE " \
+		      "  type  ='{1}' and " \
+		      "  value ='{2}'".format(TABLE_FIELDS, CATALOG_FIELDS_GROUP_NAME, in_name)
+		return self.connection.get_single(sql)
+
