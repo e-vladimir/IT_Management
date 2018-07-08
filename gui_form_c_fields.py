@@ -146,6 +146,16 @@ class FormCatalogFields(CForm):
 		self.action_delete_field.setEnabled(self.current_field is not None)
 		self.action_delete_group.setEnabled(self.current_group is not None)
 
+		if self.current_group is None:
+			self.action_delete_group.setText("Удалить группу")
+		else:
+			self.action_delete_group.setText("Удалить '{0}'".format(self.current_group.text()))
+
+		if self.current_field is None:
+			self.action_delete_field.setText("Удалить характеристику")
+		else:
+			self.action_delete_field.setText("Удалить '{0}'".format(self.current_field.text()))
+
 	def _service_defaults(self):
 		self.model_fields.clear()
 

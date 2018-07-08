@@ -10,6 +10,8 @@ class FormMain(CForm):
 	def __init_events__(self):
 		self.action_select_equipment.triggered.connect(self.select_equipment)
 
+		self.action_catalogs_fields.triggered.connect(self.open_catalog_fields)
+
 	def __init_icons__(self):
 		self.icon_small_equipment = QIcon(self.application.PATH_ICONS_SMALL + "equipments.png")
 		self.icon_small_catalog   = QIcon(self.application.PATH_ICONS_SMALL + "catalog.png")
@@ -24,5 +26,13 @@ class FormMain(CForm):
 		self.menuBar().addMenu(self.menu_sections)
 		self.menuBar().addMenu(self.menu_equipment_catalogs)
 
+	def __init_ui__(self):
+		super(FormMain, self).__init_ui__()
+
+		self.setWindowTitle("IT-management")
+
 	def select_equipment(self):
 		self.menu_sections.setTitle(self.action_select_equipment.text())
+
+	def open_catalog_fields(self):
+		self.application.form_catalog_fields.load_and_show()

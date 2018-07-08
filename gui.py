@@ -1,15 +1,15 @@
-from core_gui                      import *
-from core_sqlite                   import *
+from core_gui          import *
+from core_sqlite       import *
 
-from gui_form_main                 import FormMain
+from gui_form_main     import FormMain
 from gui_form_c_fields import FormCatalogFields
 
 
 class AppManage(CApplication):
-	sql_connection            = None
+	sql_connection      = None
 
-	form_main                 = FormMain
-	form_equip_catalog_fields = FormCatalogFields
+	form_main           = FormMain
+	form_catalog_fields = FormCatalogFields
 
 	version = "180206/1321"
 
@@ -21,13 +21,13 @@ class AppManage(CApplication):
 
 	def init_forms(self):
 		self.form_main                 = FormMain(self)
-		self.form_equip_catalog_fields = FormCatalogFields(self)
+		self.form_catalog_fields = FormCatalogFields(self)
 
 	def init_sql(self):
 		self.sql_connection = TSQLiteConnection('{0}/{1}'.format(self.PATH_COMMON, "db.sqlite"))
 
 
 app = AppManage()
-# app.form_main.showMaximized()
-app.form_equip_catalog_fields.load_and_show()
+app.form_main.showMaximized()
+# app.form_equip_catalog_fields.load_and_show()
 sys.exit(app.exec_())
