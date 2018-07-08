@@ -193,16 +193,45 @@ class CMetaObject(CMeta):
 		self.fields._id_obj = self.id
 		self.fields.save()
 
+	def delete(self):
+		self.connection.transaction_start()
+		sql = "DELETE FROM {0} " \
+		      "WHERE " \
+		      "  ID_OBJ='{1}'".format(TABLE_FIELDS, self.id)
+		self.connection.exec_delete(sql)
+
+		sql = "DELETE FROM {0} " \
+		      "WHERE " \
+		      "  ID='{1}'".format(TABLE_META, self.id)
+		self.connection.exec_delete(sql)
+
+		self.connection.transaction_commit()
+
 
 # Базовые классы
 class CCatalogFieldGroups(CMeta):
-	def get_groups_id(self):
+	def get_list_id(self):
 		sql = "SELECT DISTINCT " \
 		      "  id " \
 		      "FROM {0} " \
 		      "WHERE " \
 		      "  type='{1}'".format(TABLE_META, CATALOG_FIELDS_GROUP)
 		return self.connection.get_list(sql)
+
+	def get_list(self):
+		result  = []
+		list_id = self.get_list_id()
+
+		for id in list_id:
+			sql = "SELECT " \
+			      "  value " \
+			      "FROM {0} " \
+			      "WHERE " \
+			      "  ID_OBJ='{1}' and " \
+			      "  type='{2}'".format(TABLE_FIELDS, id, CATALOG_FIELDS_GROUP_NAME)
+			result.append(self.connection.get_single(sql))
+
+		return result
 
 
 class CCatalogFieldGroup(CMetaObject):
@@ -245,3 +274,13 @@ class CCatalogFieldGroup(CMetaObject):
 		self.name = ""
 		self.note = ""
 		self.fields.clear()
+
+	def get_fields(self):
+		result = []
+		list_fields = self.fields.get_list()
+
+		for field in list_fields:
+			if "Характеристика" in field:
+				result.append(self.fields.get_field(field))
+
+		return result

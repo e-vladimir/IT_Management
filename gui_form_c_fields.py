@@ -9,6 +9,9 @@ class FormCatalogFields(CForm):
 	model_fields = QStandardItemModel
 	tree_fields  = QTreeView
 
+	current_group = None
+	current_field = None
+
 	def __init_objects__(self):
 		self._groups      = CCatalogFieldGroups(self.application.sql_connection)
 		self._group       = CCatalogFieldGroup(self.application.sql_connection)
@@ -75,7 +78,17 @@ class FormCatalogFields(CForm):
 		self.action_save.triggered.connect(self.save)
 		self.action_defaults.triggered.connect(self.service_defaults)
 
+		self.action_add_field.triggered.connect(self.add_field)
+		self.action_add_group.triggered.connect(self.add_group)
+
+		self.action_delete_field.triggered.connect(self.delete_field)
+		self.action_delete_group.triggered.connect(self.delete_group)
+
+		self.tree_fields.clicked.connect(self.get_current)
+
 	def service_defaults(self):
+		self.model_fields.clear()
+
 		item_group = QStandartItemWithID("Общее описание", None)
 		item_group.appendRow(QStandartItemWithID("Производитель",        None))
 		item_group.appendRow(QStandartItemWithID("Модель",               None))
@@ -90,13 +103,28 @@ class FormCatalogFields(CForm):
 		item_group.appendRow(QStandartItemWithID("Сотрудник",            None))
 		self.model_fields.appendRow(item_group)
 
+		item_group = QStandartItemWithID("Бухгалтерия", None)
+		item_group.appendRow(QStandartItemWithID("Инвентарный номер",    None))
+		item_group.appendRow(QStandartItemWithID("Числится",             None))
+		item_group.appendRow(QStandartItemWithID("Сотрудник",            None))
+		item_group.appendRow(QStandartItemWithID("Дата поступления",     None))
+		self.model_fields.appendRow(item_group)
+
+		self.tree_fields.sortByColumn(0, Qt.AscendingOrder)
+
 	def save(self):
+		list_id = self._groups.get_list_id()
+		for group_id in list_id:
+			self._group.id = group_id
+			self._group.delete()
+
 		for index_row in range(self.model_fields.rowCount()):
 			item_group = self.model_fields.item(index_row)
 			group = item_group.text()
 
 			self._group.clear(True)
 			self._group.name = group
+			self._group.id   = item_group.id
 
 			for index_fields in range(item_group.rowCount()):
 				item_field = item_group.child(index_fields)
@@ -110,19 +138,80 @@ class FormCatalogFields(CForm):
 	def load(self):
 		self.model_fields.clear()
 
-		list_groups_id = self._groups.get_groups_id()
+		list_groups_id = self._groups.get_list_id()
 
 		for group_id in list_groups_id:
 			self._group.load(int(group_id))
 
 			item_group = QStandartItemWithID(self._group.name, self._group.id)
 
-			for field_name in self._group.fields.get_list():
-				field_value = self._group.fields.get_field(field_name)
-				item_group.appendRow(QStandartItemWithID(field_value, None))
+			for field in self._group.get_fields():
+				item_group.appendRow(QStandartItemWithID(field, None))
 
 			self.model_fields.appendRow(item_group)
+
+		self.tree_fields.sortByColumn(0, Qt.AscendingOrder)
 
 	def load_and_show(self):
 		self.load()
 		self.showCentered()
+
+	def add_group(self):
+		group_name = "Название раздела"
+		group_name, result = QInputDialog.getText(self, "Добавление раздела", "Укажите название раздела", text=group_name)
+
+		if result:
+			list_groups = self._groups.get_list()
+
+			if group_name not in list_groups:
+				item_group = QStandartItemWithID(group_name, None)
+
+				self.model_fields.appendRow(item_group)
+
+				self.tree_fields.sortByColumn(0, Qt.AscendingOrder)
+
+	def add_field(self):
+		field_name = "Характеристика"
+		field_name, result = QInputDialog.getText(self, "Добавление характеристики", "Укажите характеристику", text=field_name)
+
+		if result:
+			list_fields = []
+
+			for index_field in range(self.current_group.rowCount()):
+				item_field = self.current_group.child(index_field)
+				list_fields.append(item_field.text())
+
+			if field_name not in list_fields:
+				self.current_group.appendRow(QStandartItemWithID(field_name, None))
+
+				self.tree_fields.sortByColumn(0, Qt.AscendingOrder)
+
+	def get_current(self):
+		current_index = self.tree_fields.currentIndex()
+		current_item  = self.model_fields.itemFromIndex(current_index)
+
+		if current_item is None:
+			self.current_field = None
+			self.current_group = None
+		else:
+			current_parent = current_item.parent()
+
+			if current_parent is None:
+				self.current_group = current_item
+				self.current_field = None
+			else:
+				self.current_group = current_parent
+				self.current_field = current_item
+
+		self.enable_disable()
+
+	def enable_disable(self):
+		self.action_add_field.setEnabled(self.current_group is not None)
+		self.action_delete_field.setEnabled(self.current_field is not None)
+		self.action_delete_group.setEnabled(self.current_group is not None)
+
+	def delete_group(self):
+		self.model_fields.removeRow(self.current_group.row())
+
+	def delete_field(self):
+		self.current_group.removeChild(self.current_field.row())
