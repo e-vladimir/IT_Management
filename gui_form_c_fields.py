@@ -104,4 +104,25 @@ class FormCatalogFields(CForm):
 
 				self._group.fields.set_field("Характеристика/{0}".format(index_fields), field)
 
-			self._group.save()
+			if item_group.rowCount() > 0:
+				self._group.save()
+
+	def load(self):
+		self.model_fields.clear()
+
+		list_groups_id = self._groups.get_groups_id()
+
+		for group_id in list_groups_id:
+			self._group.load(int(group_id))
+
+			item_group = QStandartItemWithID(self._group.name, self._group.id)
+
+			for field_name in self._group.fields.get_list():
+				field_value = self._group.fields.get_field(field_name)
+				item_group.appendRow(QStandartItemWithID(field_value, None))
+
+			self.model_fields.appendRow(item_group)
+
+	def load_and_show(self):
+		self.load()
+		self.showCentered()

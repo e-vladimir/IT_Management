@@ -9,6 +9,11 @@ class CMeta:
 	def __init__(self, in_connection=None):
 		self.set_connection(in_connection)
 
+		self.__init_objects__()
+
+	def __init_objects__(self):
+		pass
+
 	def set_connection(self, in_connection=None):
 		self.connection   = in_connection
 		self._init_db_()
@@ -27,12 +32,15 @@ class CMeta:
 class CMetaFields(CMeta):
 	_fields = dict
 	_id_obj = ""
-	
+
+	hide_fields = []
+
 	def __init__(self, in_connection=None):
 		super(CMetaFields, self).__init__(in_connection)
 
-		self._fields = dict()
-	
+		self._fields     = dict()
+		self.hide_fields = []
+
 	def _init_db_(self):
 		sql = "CREATE TABLE IF NOT EXISTS {0} " \
 		      "(" \
@@ -64,10 +72,10 @@ class CMetaFields(CMeta):
 		self._id_obj = in_id_obj
 
 		sql = "SELECT " \
-		      " ID " \
+		      "  ID " \
 		      "FROM {0} " \
 		      "WHERE " \
-		      " (ID_OBJ = '{1}')".format(TABLE_FIELDS, self._id_obj)
+		      "  (ID_OBJ = '{1}')".format(TABLE_FIELDS, self._id_obj)
 
 		list_id = self.connection.get_list(sql)
 
@@ -87,13 +95,13 @@ class CMetaFields(CMeta):
 
 			for field in self._fields:
 				sql = "INSERT INTO {0} (" \
-				      " ID_OBJ," \
-				      " type,  " \
-				      " value )" \
+				      "  ID_OBJ," \
+				      "  type,  " \
+				      "  value )" \
 				      "VALUES (" \
-				      " '{1}', " \
-				      " '{2}', " \
-				      " '{3}' )".format(TABLE_FIELDS, self._id_obj, field, self._fields[field])
+				      "  '{1}', " \
+				      "  '{2}', " \
+				      "  '{3}' )".format(TABLE_FIELDS, self._id_obj, field, self._fields[field])
 				self.connection.exec_insert(sql)
 
 			self.connection.transaction_commit()
@@ -107,8 +115,22 @@ class CMetaFields(CMeta):
 	def set_field(self, in_field, in_value=""):
 		self._fields[in_field] = in_value
 
+	def delete_field(self, in_field=None):
+		if in_field is not None:
+			if in_field in self._fields:
+				self._fields.pop(in_field)
+
 	def clear(self):
 		self._fields = dict()
+
+	def get_list(self):
+		result = []
+
+		for field in self._fields:
+			if field not in self.hide_fields:
+				result.append(field)
+
+		return result
 
 
 class CMetaObject(CMeta):
@@ -174,18 +196,21 @@ class CMetaObject(CMeta):
 
 # Базовые классы
 class CCatalogFieldGroups(CMeta):
-	def get_groups(self):
+	def get_groups_id(self):
 		sql = "SELECT DISTINCT " \
 		      "  id " \
 		      "FROM {0} " \
 		      "WHERE " \
-		      "  type='{1}'".format(TABLE_FIELDS, CATALOG_FIELDS_GROUP)
+		      "  type='{1}'".format(TABLE_META, CATALOG_FIELDS_GROUP)
 		return self.connection.get_list(sql)
 
 
 class CCatalogFieldGroup(CMetaObject):
 	type = CATALOG_FIELDS_GROUP
 	name = ""
+
+	def __init_objects__(self):
+		self.fields.hide_fields = [CATALOG_FIELDS_GROUP_NAME]
 
 	def save(self):
 		self.fields.set_field("Название", self.name)
