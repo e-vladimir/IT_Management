@@ -11,14 +11,7 @@ class CMeta:
 
 		self.__init_objects__()
 
-	def __init_objects__(self):
-		pass
-
-	def set_connection(self, in_connection=None):
-		self.connection   = in_connection
-		self._init_db_()
-
-	def _init_db_(self):
+	def __init_db__(self):
 		sql = "CREATE TABLE IF NOT EXISTS {0} " \
 		      "(" \
 		      "  ID     INTEGER PRIMARY KEY ASC, " \
@@ -27,6 +20,13 @@ class CMeta:
 		      ")".format(TABLE_META)
 
 		self.connection.exec_create(sql)
+
+	def __init_objects__(self):
+		pass
+
+	def set_connection(self, in_connection=None):
+		self.connection   = in_connection
+		self.__init_db__()
 
 
 class CMetaFields(CMeta):
@@ -41,7 +41,7 @@ class CMetaFields(CMeta):
 		self._fields     = dict()
 		self.hide_fields = []
 
-	def _init_db_(self):
+	def __init_db__(self):
 		sql = "CREATE TABLE IF NOT EXISTS {0} " \
 		      "(" \
 		      "  ID     INTEGER PRIMARY KEY ASC, " \
@@ -67,6 +67,29 @@ class CMetaFields(CMeta):
 		_value       = field_values[1]
 
 		self._fields[_type] = _value
+
+	def clear(self):
+		self._fields = dict()
+
+	def delete_field(self, in_field=None):
+		if in_field is not None:
+			if in_field in self._fields:
+				self._fields.pop(in_field)
+
+	def get_field(self, in_field):
+		if in_field not in self._fields:
+			return None
+		else:
+			return self._fields[in_field]
+
+	def get_list(self):
+		result = []
+
+		for field in self._fields:
+			if field not in self.hide_fields:
+				result.append(field)
+
+		return result
 
 	def load(self, in_id_obj):
 		self._id_obj = in_id_obj
@@ -106,31 +129,8 @@ class CMetaFields(CMeta):
 
 			self.connection.transaction_commit()
 
-	def get_field(self, in_field):
-		if in_field not in self._fields:
-			return None
-		else:
-			return self._fields[in_field]
-
 	def set_field(self, in_field, in_value=""):
 		self._fields[in_field] = in_value
-
-	def delete_field(self, in_field=None):
-		if in_field is not None:
-			if in_field in self._fields:
-				self._fields.pop(in_field)
-
-	def clear(self):
-		self._fields = dict()
-
-	def get_list(self):
-		result = []
-
-		for field in self._fields:
-			if field not in self.hide_fields:
-				result.append(field)
-
-		return result
 
 
 class CMetaObject(CMeta):
@@ -148,6 +148,20 @@ class CMetaObject(CMeta):
 		super(CMetaObject, self).set_connection(in_connection)
 
 		self.fields = CMetaFields(in_connection)
+
+	def delete(self):
+		self.connection.transaction_start()
+		sql = "DELETE FROM {0} " \
+		      "WHERE " \
+		      "  ID_OBJ='{1}'".format(TABLE_FIELDS, self.id)
+		self.connection.exec_delete(sql)
+
+		sql = "DELETE FROM {0} " \
+		      "WHERE " \
+		      "  ID='{1}'".format(TABLE_META, self.id)
+		self.connection.exec_delete(sql)
+
+		self.connection.transaction_commit()
 
 	def load(self, in_id=None):
 		if in_id is not None:
@@ -193,31 +207,9 @@ class CMetaObject(CMeta):
 		self.fields._id_obj = self.id
 		self.fields.save()
 
-	def delete(self):
-		self.connection.transaction_start()
-		sql = "DELETE FROM {0} " \
-		      "WHERE " \
-		      "  ID_OBJ='{1}'".format(TABLE_FIELDS, self.id)
-		self.connection.exec_delete(sql)
-
-		sql = "DELETE FROM {0} " \
-		      "WHERE " \
-		      "  ID='{1}'".format(TABLE_META, self.id)
-		self.connection.exec_delete(sql)
-
-		self.connection.transaction_commit()
-
 
 # Базовые классы
 class CCatalogFieldGroups(CMeta):
-	def get_list_id(self):
-		sql = "SELECT DISTINCT " \
-		      "  id " \
-		      "FROM {0} " \
-		      "WHERE " \
-		      "  type='{1}'".format(TABLE_META, CATALOG_FIELDS_GROUP)
-		return self.connection.get_list(sql)
-
 	def get_list(self):
 		result  = []
 		list_id = self.get_list_id()
@@ -233,6 +225,14 @@ class CCatalogFieldGroups(CMeta):
 
 		return result
 
+	def get_list_id(self):
+		sql = "SELECT DISTINCT " \
+		      "  id " \
+		      "FROM {0} " \
+		      "WHERE " \
+		      "  type='{1}'".format(TABLE_META, CATALOG_FIELDS_GROUP)
+		return self.connection.get_list(sql)
+
 
 class CCatalogFieldGroup(CMetaObject):
 	type = CATALOG_FIELDS_GROUP
@@ -240,23 +240,6 @@ class CCatalogFieldGroup(CMetaObject):
 
 	def __init_objects__(self):
 		self.fields.hide_fields = [CATALOG_FIELDS_GROUP_NAME]
-
-	def save(self):
-		self.fields.set_field("Название", self.name)
-		self.id = self._get_id(self.name)
-
-		super(CCatalogFieldGroup, self).save()
-
-	def load(self, in_id_or_name=None):
-		if   type(in_id_or_name) == int:
-			self.id = in_id_or_name
-		elif type(in_id_or_name) == str:
-			self.id   = self._get_id(in_id_or_name)
-			
-		if self.id is not None:
-			self.clear()
-			super(CCatalogFieldGroup, self).load()
-			self.name = self.fields.get_field("Название")
 
 	def _get_id(self, in_name=None):
 		sql = "SELECT " \
@@ -284,3 +267,20 @@ class CCatalogFieldGroup(CMetaObject):
 				result.append(self.fields.get_field(field))
 
 		return result
+
+	def load(self, in_id_or_name=None):
+		if type(in_id_or_name) == int:
+			self.id = in_id_or_name
+		elif type(in_id_or_name) == str:
+			self.id = self._get_id(in_id_or_name)
+
+		if self.id is not None:
+			self.clear()
+			super(CCatalogFieldGroup, self).load()
+			self.name = self.fields.get_field("Название")
+
+	def save(self):
+		self.fields.set_field("Название", self.name)
+		self.id = self._get_id(self.name)
+
+		super(CCatalogFieldGroup, self).save()

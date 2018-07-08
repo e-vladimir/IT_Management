@@ -19,12 +19,12 @@ class AppManage(CApplication):
 		self.init_sql()
 		self.init_forms()
 
-	def init_sql(self):
-		self.sql_connection = TSQLiteConnection('{0}/{1}'.format(self.PATH_COMMON, "db.sqlite"))
-
 	def init_forms(self):
 		self.form_main                 = FormMain(self)
 		self.form_equip_catalog_fields = FormCatalogFields(self)
+
+	def init_sql(self):
+		self.sql_connection = TSQLiteConnection('{0}/{1}'.format(self.PATH_COMMON, "db.sqlite"))
 
 
 app = AppManage()
