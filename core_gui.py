@@ -1,5 +1,5 @@
 # GUI-обёртка для нужных объектов
-# V1-2018-07-06
+# V1-2018-07-09
 
 from   PySide.QtCore import *
 from   PySide.QtGui  import *
@@ -33,12 +33,12 @@ class CForm(QMainWindow):
 
 		self.application = in_application
 
+		self.__init_objects__()
+
 		self.__init_ui__()
 		self.__init_events__()
 
 	def __init_ui__(self):
-		self.__init_objects__()
-
 		self.__init_icons__()
 
 		self.__init_actions__()

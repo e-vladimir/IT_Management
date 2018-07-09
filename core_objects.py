@@ -284,3 +284,12 @@ class CCatalogFieldGroup(CMetaObject):
 		self.id = self._get_id(self.name)
 
 		super(CCatalogFieldGroup, self).save()
+
+
+# ОС и ТМЦ
+class CEquipments(CMeta):
+	pass
+
+
+class CEquipment(CMetaObject):
+	type = EQUIPMENT
