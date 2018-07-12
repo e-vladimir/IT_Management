@@ -18,6 +18,8 @@ class FormMain(CForm):
 	def __init_events__(self):
 		self.action_select_equipment.triggered.connect(self.select_equipment)
 
+		self.action_equipment_add.triggered.connect(self.add_equipment)
+
 		self.action_catalogs_fields.triggered.connect(self.open_catalog_fields)
 
 	def __init_icons__(self):
@@ -69,3 +71,6 @@ class FormMain(CForm):
 
 	def open_catalog_fields(self):
 		self.application.form_catalog_fields.load_and_show()
+
+	def add_equipment(self):
+		self.application.form_equipment.load()

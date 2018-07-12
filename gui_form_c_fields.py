@@ -19,17 +19,20 @@ class FormCatalogFields(CForm):
 		self.model_fields = QStandardItemModel()
 
 	def __init_actions__(self):
-		self.action_save           = QAction(self.icon_small_save,   "Сохранить",               None)
-		self.action_save_and_close = QAction(self.icon_small_save,   "Сохранить и закрыть",     None)
-		self.action_close          = QAction(self.icon_small_close,  "Закрыть",                 None)
+		self.action_save           = QAction(self.icon_small_save,   "Сохранить",                       None)
+		self.action_save_and_close = QAction(self.icon_small_save,   "Сохранить и закрыть",             None)
+		self.action_close          = QAction(self.icon_small_close,  "Закрыть",                         None)
 
-		self.action_add_group      = QAction(self.icon_small_insert, "Добавить группу",         None)
-		self.action_delete_group   = QAction(self.icon_small_delete, "Удалить группу",          None)
-		self.action_add_field      = QAction(self.icon_small_insert, "Добавить характеристику", None)
-		self.action_delete_field   = QAction(self.icon_small_delete, "Удалить характеристику",  None)
+		self.action_add_group      = QAction(self.icon_small_insert, "Добавить группу",                 None)
+		self.action_delete_group   = QAction(self.icon_small_delete, "Удалить группу",                  None)
+		self.action_add_field      = QAction(self.icon_small_insert, "Добавить характеристику",         None)
+		self.action_delete_field   = QAction(self.icon_small_delete, "Удалить характеристику",          None)
 
 		self.action_clear          = QAction(self.icon_small_delete, "Удалить все характеристики",      None)
 		self.action_defaults       = QAction(self.icon_small_fields, "Стандартный набор характеристик", None)
+
+		self.action_up             = QAction(self.icon_small_up,     "Переместить выше",                None)
+		self.action_down           = QAction(self.icon_small_down,   "Переместить ниже",                None)
 
 	def __init_events__(self):
 		self.action_save.triggered.connect(self.save)
@@ -41,6 +44,9 @@ class FormCatalogFields(CForm):
 		self.action_delete_field.triggered.connect(self._delete_field)
 		self.action_delete_group.triggered.connect(self._delete_group)
 
+		self.action_up.triggered.connect(self._field_up)
+		self.action_down.triggered.connect(self._field_down)
+
 		self.tree_fields.clicked.connect(self._get_current)
 
 	def __init_icons__(self):
@@ -51,6 +57,9 @@ class FormCatalogFields(CForm):
 		self.icon_small_close  = QIcon(self.application.PATH_ICONS_SMALL + "table_close.png")
 
 		self.icon_small_fields = QIcon(self.application.PATH_ICONS_SMALL + "fields.png")
+
+		self.icon_small_up     = QIcon(self.application.PATH_ICONS_SMALL + "arrow_up.png")
+		self.icon_small_down   = QIcon(self.application.PATH_ICONS_SMALL + "arrow_down.png")
 
 	def __init_menu__(self):
 		menu_main = QMenu("Действия")
@@ -65,6 +74,9 @@ class FormCatalogFields(CForm):
 		menu_fields.addSeparator()
 		menu_fields.addAction(self.action_add_field)
 		menu_fields.addAction(self.action_delete_field)
+		menu_fields.addSeparator()
+		menu_fields.addAction(self.action_up)
+		menu_fields.addAction(self.action_down)
 
 		menu_service = QMenu("Сервис")
 		menu_service.addAction(self.action_clear)
@@ -146,6 +158,27 @@ class FormCatalogFields(CForm):
 		self.action_delete_field.setEnabled(self.current_field is not None)
 		self.action_delete_group.setEnabled(self.current_group is not None)
 
+		if self.current_group is not None:
+			_is_top_list    = self.current_group.row() == 0
+			_is_bottom_list = self.current_group.row() == self.model_fields.rowCount() - 1
+		else:
+			_is_top_list    = False
+			_is_bottom_list = False
+
+		if self.current_field is not None:
+			_is_top_list    = self.current_field.row() == 0
+			_is_bottom_list = self.current_field.row() == self.current_group.rowCount() - 1
+
+			print(self.current_group.rowCount())
+		else:
+			_is_top_list    = _is_top_list or False
+			_is_bottom_list = _is_bottom_list or False
+
+		_is_selected    = (self.current_group is not None) or (self.current_field is not None)
+
+		self.action_up.setEnabled(_is_selected and not _is_top_list)
+		self.action_down.setEnabled(_is_selected and not _is_bottom_list)
+
 		if self.current_group is None:
 			self.action_delete_group.setText("Удалить группу")
 		else:
@@ -160,6 +193,8 @@ class FormCatalogFields(CForm):
 		self.model_fields.clear()
 
 		item_group = QStandartItemWithID("Общее описание", None)
+		item_group.appendRow(QStandartItemWithID("Категория",            None))
+		item_group.appendRow(QStandartItemWithID("Подкатегория",         None))
 		item_group.appendRow(QStandartItemWithID("Производитель",        None))
 		item_group.appendRow(QStandartItemWithID("Модель",               None))
 		item_group.appendRow(QStandartItemWithID("Серийный номер",       None))
@@ -180,8 +215,6 @@ class FormCatalogFields(CForm):
 		item_group.appendRow(QStandartItemWithID("Дата поступления",     None))
 		self.model_fields.appendRow(item_group)
 
-		self.tree_fields.sortByColumn(0, Qt.AscendingOrder)
-
 	def load(self):
 		self.model_fields.clear()
 
@@ -196,8 +229,6 @@ class FormCatalogFields(CForm):
 				item_group.appendRow(QStandartItemWithID(field, None))
 
 			self.model_fields.appendRow(item_group)
-
-		self.tree_fields.sortByColumn(0, Qt.AscendingOrder)
 
 		self.current_field = None
 		self.current_group = None
@@ -229,3 +260,10 @@ class FormCatalogFields(CForm):
 
 			if item_group.rowCount() > 0:
 				self._group.save()
+
+	def _field_up(self):
+		if self.current_field is not None:
+			pass
+
+	def _field_down(self):
+		pass

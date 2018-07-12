@@ -2,6 +2,27 @@ from dict import *
 from core_sqlite import *
 
 
+# Мета-конверторы
+def _extract_part(in_field, in_part):
+	if in_field is not None:
+		_list = in_field.split("/")
+
+		if len(_list) > in_part:
+			return _list[in_part]
+		else:
+			return None
+	else:
+		return None
+
+
+def extract_field_group(in_field=None):
+	return _extract_part(in_field, 0)
+
+
+def extract_field_name(in_field=None):
+	return _extract_part(in_field, 1)
+
+
 # Мета-классы
 class CMeta:
 	connection  = TSQLiteConnection
@@ -55,11 +76,11 @@ class CMetaFields(CMeta):
 	def _load_field_(self, in_id):
 		self._id_obj = in_id
 
-		sql = "SELECT " \
-		      "  type, " \
-		      "  value " \
+		sql = "SELECT "   \
+		      "  type, "  \
+		      "  value "  \
 		      "FROM {0} " \
-		      "WHERE " \
+		      "WHERE "    \
 		      "  id = '{1}'".format(TABLE_FIELDS, in_id)
 
 		field_values = self.connection.get_multiple(sql)
@@ -227,7 +248,7 @@ class CCatalogFieldGroups(CMeta):
 
 	def get_list_id(self):
 		sql = "SELECT DISTINCT " \
-		      "  id " \
+		      "  ID " \
 		      "FROM {0} " \
 		      "WHERE " \
 		      "  type='{1}'".format(TABLE_META, CATALOG_FIELDS_GROUP)
@@ -293,3 +314,10 @@ class CEquipments(CMeta):
 
 class CEquipment(CMetaObject):
 	type = EQUIPMENT
+
+	_field_groups = CCatalogFieldGroups
+	_field_group  = CCatalogFieldGroup
+
+	def __init_objects__(self):
+		self._field_groups = CCatalogFieldGroups(self.connection)
+		self._field_group  = CCatalogFieldGroup(self.connection)
