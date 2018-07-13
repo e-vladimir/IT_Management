@@ -36,6 +36,7 @@ class FormCatalogFields(CForm):
 
 	def __init_events__(self):
 		self.action_save.triggered.connect(self.save)
+		self.action_save_and_close.triggered.connect(self.save_and_close)
 		self.action_defaults.triggered.connect(self._service_defaults)
 
 		self.action_add_field.triggered.connect(self._add_field)
@@ -131,8 +132,6 @@ class FormCatalogFields(CForm):
 			if field_name not in list_fields:
 				self.current_group.appendRow(QStandartItemWithID(field_name, None))
 
-				self.tree_fields.sortByColumn(0, Qt.AscendingOrder)
-
 	def _add_group(self):
 		group_name = "Название раздела"
 		group_name, result = QInputDialog.getText(self, "Добавление раздела", "Укажите название раздела", text=group_name)
@@ -145,10 +144,8 @@ class FormCatalogFields(CForm):
 
 				self.model_fields.appendRow(item_group)
 
-				self.tree_fields.sortByColumn(0, Qt.AscendingOrder)
-
 	def _delete_field(self):
-		self.current_group.removeChild(self.current_field.row())
+		self.current_group.removeRow(self.current_field.row())
 
 	def _delete_group(self):
 		self.model_fields.removeRow(self.current_group.row())
@@ -168,8 +165,6 @@ class FormCatalogFields(CForm):
 		if self.current_field is not None:
 			_is_top_list    = self.current_field.row() == 0
 			_is_bottom_list = self.current_field.row() == self.current_group.rowCount() - 1
-
-			print(self.current_group.rowCount())
 		else:
 			_is_top_list    = _is_top_list or False
 			_is_bottom_list = _is_bottom_list or False
@@ -261,9 +256,42 @@ class FormCatalogFields(CForm):
 			if item_group.rowCount() > 0:
 				self._group.save()
 
+	def save_and_close(self):
+		self.save()
+		self.close()
+
 	def _field_up(self):
 		if self.current_field is not None:
-			pass
+			current_row = self.current_field.row()
+
+			_row = self.current_group.takeRow(current_row)
+			self.current_group.insertRow(current_row - 1, _row)
+
+			self.tree_fields.setCurrentIndex(self.model_fields.indexFromItem(self.current_field))
+		else:
+			current_row = self.current_group.row()
+
+			_row = self.model_fields.takeRow(current_row)
+			self.model_fields.insertRow(current_row - 1, _row)
+
+			self.tree_fields.setCurrentIndex(self.model_fields.indexFromItem(self.current_group))
+
+		self._get_current()
 
 	def _field_down(self):
-		pass
+		if self.current_field is not None:
+			current_row = self.current_field.row()
+
+			_row = self.current_group.takeRow(current_row)
+			self.current_group.insertRow(current_row + 1, _row)
+
+			self.tree_fields.setCurrentIndex(self.model_fields.indexFromItem(self.current_field))
+		else:
+			current_row = self.current_group.row()
+
+			_row = self.model_fields.takeRow(current_row)
+			self.model_fields.insertRow(current_row + 1, _row)
+
+			self.tree_fields.setCurrentIndex(self.model_fields.indexFromItem(self.current_group))
+
+		self._get_current()
