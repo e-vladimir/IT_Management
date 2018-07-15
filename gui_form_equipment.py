@@ -20,9 +20,31 @@ class FormEquipment(CForm):
 	current_group = None
 	current_field = None
 
+	def __init_actions__(self):
+		self.action_save         = QAction(self.icon_small_save,   "Сохранить",           None)
+		self.action_save_as_copy = QAction(self.icon_small_save,   "Сохранить как копию", None)
+		self.action_delete       = QAction(self.icon_small_delete, "Удалить",             None)
+		self.action_open         = QAction(self.icon_small_open,   "Загрузить",           None)
+		self.action_close        = QAction(self.icon_small_close,  "Закрыть",             None)
+
 	def __init_events__(self):
 		self.tree_fields.expanded.connect(self._gui_resize_fields)
 		self.tree_fields.collapsed.connect(self._gui_resize_fields)
+
+		self.action_save.triggered.connect(self.save)
+
+	def __init_icons__(self):
+		self.icon_small_insert = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
+		self.icon_small_delete = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
+
+		self.icon_small_open   = QIcon(self.application.PATH_ICONS_SMALL + "table_open.png")
+		self.icon_small_save   = QIcon(self.application.PATH_ICONS_SMALL + "table_save.png")
+		self.icon_small_close  = QIcon(self.application.PATH_ICONS_SMALL + "table_close.png")
+
+		self.icon_small_fields = QIcon(self.application.PATH_ICONS_SMALL + "fields.png")
+
+		self.icon_small_up     = QIcon(self.application.PATH_ICONS_SMALL + "arrow_up.png")
+		self.icon_small_down   = QIcon(self.application.PATH_ICONS_SMALL + "arrow_down.png")
 
 	def __init_objects__(self):
 		self._groups      = CCatalogFieldGroups(self.application.sql_connection)
@@ -32,7 +54,22 @@ class FormEquipment(CForm):
 
 		self.model_fields = QStandardItemModel()
 
+	def __init_menu__(self):
+		menu_actions = QMenu("Действия")
+		menu_actions.addAction(self.action_save)
+		menu_actions.addAction(self.action_save_as_copy)
+		menu_actions.addSeparator()
+		menu_actions.addAction(self.action_open)
+		menu_actions.addSeparator()
+		menu_actions.addAction(self.action_delete)
+		menu_actions.addSeparator()
+		menu_actions.addAction(self.action_close)
+
+		self.menuBar().addMenu(menu_actions)
+
 	def __init_ui__(self):
+		super(FormEquipment, self).__init_ui__()
+		
 		self.setWindowTitle("ОС и ТМЦ")
 		self.setMinimumSize(460, 640)
 
@@ -41,7 +78,7 @@ class FormEquipment(CForm):
 	def _init_tabs_(self):
 		self.tabs = QTabWidget()
 		self.field_note = QLineEdit()
-		self.field_note.setPlaceholderText("Примечение")
+		self.field_note.setPlaceholderText("Примечание")
 
 		central_layout = QVBoxLayout()
 		central_layout.setContentsMargins(3, 3, 3, 3)
@@ -98,3 +135,22 @@ class FormEquipment(CForm):
 
 	def _gui_resize_fields(self):
 		self.tree_fields.resizeColumnToContents(0)
+
+	def save(self):
+		self._equipment.clear()
+
+		for index_group in range(self.model_fields.rowCount()):
+			item_group = self.model_fields.item(index_group)
+			group      = item_group.text()
+
+			if item_group.checkState() == Qt.Checked:
+				for index_field in range(item_group.rowCount()):
+					item_field = item_group.child(index_field, 0)
+					item_value = item_group.child(index_field, 1)
+
+					field      = item_field.text()
+					value      = item_value.text()
+
+					self._equipment.set(group, field, value)
+
+		self._equipment.save()

@@ -165,6 +165,13 @@ class CMetaObject(CMeta):
 
 		self.id = None
 
+	def clear(self, in_clear_id=False):
+		if in_clear_id:
+			self.id = None
+
+		self.fields.clear()
+		self.note = ""
+
 	def set_connection(self, in_connection=None):
 		super(CMetaObject, self).set_connection(in_connection)
 
@@ -228,20 +235,26 @@ class CMetaObject(CMeta):
 		self.fields._id_obj = self.id
 		self.fields.save()
 
+	def set(self, in_field_cat, in_field_subcat, in_value=""):
+		self.fields.set_field("{}/{}".format(in_field_cat, in_field_subcat), in_value)
+
+	def get(self, in_field_cat, in_field_subcat):
+		return self.fields.get_field("{}/{}".format(in_field_cat, in_field_subcat))
+
 
 # Базовые классы
 class CCatalogFieldGroups(CMeta):
 	def get_list(self):
-		result  = []
-		list_id = self.get_list_id()
+		result   = []
+		_list_id = self.get_list_id()
 
-		for id in list_id:
+		for _id in _list_id:
 			sql = "SELECT " \
 			      "  value " \
 			      "FROM {0} " \
 			      "WHERE " \
 			      "  ID_OBJ='{1}' and " \
-			      "  type='{2}'".format(TABLE_FIELDS, id, CATALOG_FIELDS_GROUP_NAME)
+			      "  type='{2}'".format(TABLE_FIELDS, _id, CATALOG_FIELDS_GROUP_NAME)
 			result.append(self.connection.get_single(sql))
 
 		return result
@@ -307,13 +320,89 @@ class CCatalogFieldGroup(CMetaObject):
 		super(CCatalogFieldGroup, self).save()
 
 
+# Транзитные классы
+class GroupMeta:
+	def __init__(self, in_metaObject=None):
+		self._meta = in_metaObject
+
+		self.load()
+
+	def clear(self):
+		pass
+
+	def load(self):
+		self.clear()
+
+
+class GroupBase(GroupMeta):
+	category    = ""
+	subcategory = ""
+
+	producer    = ""
+	model       = ""
+	serial_num  = ""
+	description = ""
+
+	state       = ""
+
+	def clear(self):
+		self.category    = ""
+		self.subcategory = ""
+
+		self.producer    = ""
+		self.model       = ""
+		self.serial_num  = ""
+		self.description = ""
+
+		self.state       = ""
+
+	def load(self):
+		super(GroupBase, self).load()
+
+		self.category    = self._meta.get(FIELDS_GROUP_BASE, "Категория")
+		self.subcategory = self._meta.get(FIELDS_GROUP_BASE, "Подкатегория")
+		self.producer    = self._meta.get(FIELDS_GROUP_BASE, "Производитель")
+		self.model       = self._meta.get(FIELDS_GROUP_BASE, "Модель")
+		self.serial_num  = self._meta.get(FIELDS_GROUP_BASE, "Серийный номер")
+		self.description = self._meta.get(FIELDS_GROUP_BASE, "Описание")
+		self.state       = self._meta.get(FIELDS_GROUP_BASE, "Состояние")
+
+
+class GroupPlacement(GroupMeta):
+	_meta     = None
+
+	struct    = ""
+	placement = ""
+	people    = ""
+
+	def clear(self):
+		self.struct    = ""
+		self.placement = ""
+		self.people    = ""
+
+	def load(self):
+		super(GroupPlacement, self).load()
+
+		self.struct    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Подразделение")
+		self.placement = self._meta.get(FIELDS_GROUP_PLACEMENT, "Местоположение")
+		self.people    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Сотрудник")
+
+
 # ОС и ТМЦ
 class CEquipments(CMeta):
-	pass
+	def get_list_id(self):
+		sql = "SELECT id " \
+		      "FROM {} " \
+		      "WHERE " \
+		      "  type='{}'".format(TABLE_META, EQUIPMENT)
+		return self.connection.get_list(sql)
 
 
 class CEquipment(CMetaObject):
-	type = EQUIPMENT
+	type          = EQUIPMENT
+
+	base          = GroupBase
+	placement     = GroupPlacement
 
 	_field_groups = CCatalogFieldGroups
 	_field_group  = CCatalogFieldGroup
@@ -321,3 +410,12 @@ class CEquipment(CMetaObject):
 	def __init_objects__(self):
 		self._field_groups = CCatalogFieldGroups(self.connection)
 		self._field_group  = CCatalogFieldGroup(self.connection)
+
+		self.base          = GroupBase(self)
+		self.placement     = GroupPlacement(self)
+
+	def load(self, in_id=None):
+		super(CEquipment, self).load(in_id)
+
+		self.base.load()
+		self.placement.load()

@@ -187,7 +187,7 @@ class FormCatalogFields(CForm):
 	def _service_defaults(self):
 		self.model_fields.clear()
 
-		item_group = QStandartItemWithID("Общее описание", None)
+		item_group = QStandartItemWithID(FIELDS_GROUP_BASE, None)
 		item_group.appendRow(QStandartItemWithID("Категория",            None))
 		item_group.appendRow(QStandartItemWithID("Подкатегория",         None))
 		item_group.appendRow(QStandartItemWithID("Производитель",        None))
@@ -197,13 +197,13 @@ class FormCatalogFields(CForm):
 		item_group.appendRow(QStandartItemWithID("Состояние",            None))
 		self.model_fields.appendRow(item_group)
 
-		item_group = QStandartItemWithID("Местоположение", None)
+		item_group = QStandartItemWithID(FIELDS_GROUP_PLACEMENT, None)
 		item_group.appendRow(QStandartItemWithID("Подразделение",        None))
 		item_group.appendRow(QStandartItemWithID("Местоположение",       None))
 		item_group.appendRow(QStandartItemWithID("Сотрудник",            None))
 		self.model_fields.appendRow(item_group)
 
-		item_group = QStandartItemWithID("Бухгалтерия", None)
+		item_group = QStandartItemWithID(FIELDS_GROUP_ACCOUNTING, None)
 		item_group.appendRow(QStandartItemWithID("Инвентарный номер",    None))
 		item_group.appendRow(QStandartItemWithID("Числится",             None))
 		item_group.appendRow(QStandartItemWithID("Сотрудник",            None))

@@ -32,5 +32,4 @@ class AppManage(CApplication):
 
 app = AppManage()
 app.form_main.showMaximized()
-# app.form_equipment.load()
 sys.exit(app.exec_())

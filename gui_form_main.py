@@ -52,6 +52,7 @@ class FormMain(CForm):
 	def __init_ui__(self):
 		super(FormMain, self).__init_ui__()
 
+		self.setMinimumSize(800, 640)
 		self.setWindowTitle("IT-management")
 
 		self._init_panel_equipment_()
@@ -60,6 +61,8 @@ class FormMain(CForm):
 		self.panel_equipment = QTreeView()
 
 	def select_equipment(self):
+		self.load_equipments()
+
 		self.menu_sections.setTitle(self.action_select_equipment.text())
 
 		self.setCentralWidget(self.panel_equipment)
@@ -74,3 +77,14 @@ class FormMain(CForm):
 
 	def add_equipment(self):
 		self.application.form_equipment.load()
+
+	def _add_equipment(self, in_id=None):
+		self._equipment.load(in_id)
+
+	def load_equipments(self):
+		self.model_equipment.clear()
+
+		_list_id = self._equipments.get_list_id()
+
+		for _id in _list_id:
+			self._add_equipment(_id)
