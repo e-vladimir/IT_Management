@@ -8,6 +8,8 @@ class FormMain(CForm):
 	_equipments = CEquipments
 	_equipment  = CEquipment
 
+	_current_equipment_item = None
+
 	def __init_actions__(self):
 		self.action_select_equipment = QAction(self.icon_small_equipment, "Учёт ОС и ТМЦ",        None)
 		self.action_catalogs_fields  = QAction(self.icon_small_equipment, "Характеристики",       None)
@@ -38,6 +40,7 @@ class FormMain(CForm):
 		self.menu_equipment = QMenu("Действия")
 		self.menu_equipment.setVisible(False)
 		self.menu_equipment.addAction(self.action_equipment_add)
+		self.menu_equipment.addSeparator()
 		self.menu_equipment.addAction(self.action_equipment_delete)
 
 		self.menuBar().addMenu(self.menu_sections)
@@ -59,6 +62,9 @@ class FormMain(CForm):
 
 	def _init_panel_equipment_(self):
 		self.panel_equipment = QTreeView()
+		self.panel_equipment.setModel(self.model_equipment)
+		self.panel_equipment.header().hide()
+		self.panel_equipment.setEditTriggers(QTreeView.NoEditTriggers)
 
 	def select_equipment(self):
 		self.load_equipments()
@@ -81,6 +87,16 @@ class FormMain(CForm):
 	def _add_equipment(self, in_id=None):
 		self._equipment.load(in_id)
 
+		item_category    = QStandartItemWithID(self._equipment.base.category,    in_id)
+		item_subcategory = QStandartItemWithID(self._equipment.base.subcategory, in_id)
+
+		item_brand       = QStandartItemWithID(self._equipment.base.brand,       in_id)
+		item_model       = QStandartItemWithID(self._equipment.base.model,       in_id)
+
+		item_state       = QStandartItemWithID(self._equipment.base.state,       in_id)
+
+		self.model_equipment.appendRow([item_category, item_subcategory, item_brand, item_model, item_state])
+
 	def load_equipments(self):
 		self.model_equipment.clear()
 
@@ -88,3 +104,17 @@ class FormMain(CForm):
 
 		for _id in _list_id:
 			self._add_equipment(_id)
+
+		self.resize_equipment()
+
+	def resize_equipment(self):
+		self.panel_equipment.hide()
+
+		for index_col in range(self.model_equipment.columnCount()):
+			self.panel_equipment.resizeColumnToContents(index_col)
+
+		self.panel_equipment.show()
+
+	def get_current_equipment(self):
+		_current_index = self.panel_equipment.currentIndex()
+		self._current_equipment_item = self.model_equipment.itemFromIndex(_current_index)

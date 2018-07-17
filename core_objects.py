@@ -338,7 +338,7 @@ class GroupBase(GroupMeta):
 	category    = ""
 	subcategory = ""
 
-	producer    = ""
+	brand       = ""
 	model       = ""
 	serial_num  = ""
 	description = ""
@@ -349,7 +349,7 @@ class GroupBase(GroupMeta):
 		self.category    = ""
 		self.subcategory = ""
 
-		self.producer    = ""
+		self.brand       = ""
 		self.model       = ""
 		self.serial_num  = ""
 		self.description = ""
@@ -361,7 +361,7 @@ class GroupBase(GroupMeta):
 
 		self.category    = self._meta.get(FIELDS_GROUP_BASE, "Категория")
 		self.subcategory = self._meta.get(FIELDS_GROUP_BASE, "Подкатегория")
-		self.producer    = self._meta.get(FIELDS_GROUP_BASE, "Производитель")
+		self.brand       = self._meta.get(FIELDS_GROUP_BASE, "Производитель")
 		self.model       = self._meta.get(FIELDS_GROUP_BASE, "Модель")
 		self.serial_num  = self._meta.get(FIELDS_GROUP_BASE, "Серийный номер")
 		self.description = self._meta.get(FIELDS_GROUP_BASE, "Описание")
