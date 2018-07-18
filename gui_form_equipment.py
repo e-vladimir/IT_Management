@@ -129,6 +129,11 @@ class FormEquipment(CForm):
 	def load(self, in_id=None):
 		self.load_fields()
 
+		if in_id is not None:
+			self._equipment.load(in_id)
+
+			self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory, self._equipment.base.brand, self._equipment.base.model))
+
 		self._gui_resize_fields()
 
 		self.showCentered()

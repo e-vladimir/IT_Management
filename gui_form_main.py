@@ -18,11 +18,14 @@ class FormMain(CForm):
 		self.action_equipment_delete = QAction(self.icon_small_delete,    "Удалить <ОС или ТМЦ>", None)
 
 	def __init_events__(self):
-		self.action_select_equipment.triggered.connect(self.select_equipment)
+		self.action_select_equipment.triggered.connect(self._select_equipments)
 
-		self.action_equipment_add.triggered.connect(self.add_equipment)
+		self.action_equipment_add.triggered.connect(self.equipment_add)
 
 		self.action_catalogs_fields.triggered.connect(self.open_catalog_fields)
+
+		self.panel_equipment.clicked.connect(self._equipment_get_current)
+		self.panel_equipment.doubleClicked.connect(self.equipment_load)
 
 	def __init_icons__(self):
 		self.icon_small_equipment = QIcon(self.application.PATH_ICONS_SMALL + "equipments.png")
@@ -66,8 +69,8 @@ class FormMain(CForm):
 		self.panel_equipment.header().hide()
 		self.panel_equipment.setEditTriggers(QTreeView.NoEditTriggers)
 
-	def select_equipment(self):
-		self.load_equipments()
+	def _select_equipments(self):
+		self.equipments_load()
 
 		self.menu_sections.setTitle(self.action_select_equipment.text())
 
@@ -78,36 +81,47 @@ class FormMain(CForm):
 		self.menuBar().addMenu(self.menu_equipment)
 		self.menuBar().addMenu(self.menu_catalogs)
 
-	def open_catalog_fields(self):
-		self.application.form_catalog_fields.load_and_show()
-
-	def add_equipment(self):
-		self.application.form_equipment.load()
-
-	def _add_equipment(self, in_id=None):
+	def _equipment_append_to_table(self, in_id=None):
 		self._equipment.load(in_id)
 
-		item_category    = QStandartItemWithID(self._equipment.base.category,    in_id)
-		item_subcategory = QStandartItemWithID(self._equipment.base.subcategory, in_id)
+		item_category        = QStandartItemWithID(self._equipment.base.category,       in_id)
+		item_subcategory     = QStandartItemWithID(self._equipment.base.subcategory,    in_id)
+		item_brand           = QStandartItemWithID(self._equipment.base.brand,          in_id)
+		item_model           = QStandartItemWithID(self._equipment.base.model,          in_id)
+		item_state           = QStandartItemWithID(self._equipment.base.state,          in_id)
+		item_place_struct    = QStandartItemWithID(self._equipment.placement.struct,    in_id)
+		item_place_placement = QStandartItemWithID(self._equipment.placement.placement, in_id)
+		item_place_people    = QStandartItemWithID(self._equipment.placement.people,    in_id)
 
-		item_brand       = QStandartItemWithID(self._equipment.base.brand,       in_id)
-		item_model       = QStandartItemWithID(self._equipment.base.model,       in_id)
+		item_brand.setFont(FONT_BOLD)
+		item_model.setFont(FONT_BOLD)
 
-		item_state       = QStandartItemWithID(self._equipment.base.state,       in_id)
+		item_state.setFont(FONT_ITALIC)
 
-		self.model_equipment.appendRow([item_category, item_subcategory, item_brand, item_model, item_state])
+		self.model_equipment.appendRow([item_category, item_subcategory, item_brand, item_model, item_state, item_place_struct, item_place_placement, item_place_people])
 
-	def load_equipments(self):
+	def _equipment_get_current(self):
+		_current_index = self.panel_equipment.currentIndex()
+		self._current_equipment_item = self.model_equipment.itemFromIndex(_current_index)
+
+	def equipment_add(self):
+		self.application.form_equipment.load()
+
+	def equipment_load(self):
+		if self._current_equipment_item is not None:
+			self.application.form_equipment.load(self._current_equipment_item.id)
+
+	def equipments_load(self):
 		self.model_equipment.clear()
 
 		_list_id = self._equipments.get_list_id()
 
 		for _id in _list_id:
-			self._add_equipment(_id)
+			self._equipment_append_to_table(_id)
 
-		self.resize_equipment()
+		self.equipments_resize()
 
-	def resize_equipment(self):
+	def equipments_resize(self):
 		self.panel_equipment.hide()
 
 		for index_col in range(self.model_equipment.columnCount()):
@@ -115,6 +129,5 @@ class FormMain(CForm):
 
 		self.panel_equipment.show()
 
-	def get_current_equipment(self):
-		_current_index = self.panel_equipment.currentIndex()
-		self._current_equipment_item = self.model_equipment.itemFromIndex(_current_index)
+	def open_catalog_fields(self):
+		self.application.form_catalog_fields.load_and_show()
