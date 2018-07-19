@@ -8,17 +8,17 @@ class NoneModelItem(QStandartItemWithID):
 
 
 class FormEquipment(CForm):
-	_groups      = CCatalogFieldGroups
-	_group       = CCatalogFieldGroup
+	_groups            = CCatalogFieldGroups
+	_group             = CCatalogFieldGroup
 
-	_equipments  = CEquipments
-	_equipment   = CEquipment
+	_equipments        = CEquipments
+	_equipment         = CEquipment
 
-	model_fields = QStandardItemModel
-	tree_fields  = QTreeView
+	model_fields       = QStandardItemModel
+	tree_fields        = QTreeView
 
-	current_group = None
-	current_field = None
+	current_main_group = None
+	current_main_field = None
 
 	def __init_actions__(self):
 		self.action_save         = QAction(self.icon_small_save,   "Сохранить",           None)
@@ -30,6 +30,8 @@ class FormEquipment(CForm):
 	def __init_events__(self):
 		self.tree_fields.expanded.connect(self._gui_resize_fields)
 		self.tree_fields.collapsed.connect(self._gui_resize_fields)
+
+		self.tree_fields.clicked.connect(self._get_current_main)
 
 		self.action_save.triggered.connect(self.save)
 
@@ -71,9 +73,25 @@ class FormEquipment(CForm):
 		super(FormEquipment, self).__init_ui__()
 		
 		self.setWindowTitle("ОС и ТМЦ")
-		self.setMinimumSize(460, 640)
+		self.setMinimumSize(640, 480)
 
 		self._init_tabs_()
+
+	def _init_tab_main_(self):
+		self.tree_fields = QTreeView()
+		self.tree_fields.setMinimumWidth(450)
+		self.tree_fields.setModel(self.model_fields)
+		self.tree_fields.header().hide()
+		self.tree_fields.setAlternatingRowColors(True)
+
+		self.list_values = QListWidget()
+
+		splitter_main = QSplitter()
+		splitter_main.setContentsMargins(3, 3, 3, 3)
+		splitter_main.addWidget(self.tree_fields)
+		splitter_main.addWidget(self.list_values)
+
+		self.tabs.addTab(splitter_main, "Характеристики")
 
 	def _init_tabs_(self):
 		self.tabs = QTabWidget()
@@ -93,21 +111,8 @@ class FormEquipment(CForm):
 
 		self._init_tab_main_()
 
-	def _init_tab_main_(self):
-		self.tree_fields = QTreeView()
-		self.tree_fields.setMinimumWidth(300)
-		self.tree_fields.setModel(self.model_fields)
-		self.tree_fields.header().hide()
-		self.tree_fields.setAlternatingRowColors(True)
-
-		self.field_values = QListWidget()
-
-		splitter_main = QSplitter()
-		splitter_main.setContentsMargins(3, 3, 3, 3)
-		splitter_main.addWidget(self.tree_fields)
-		splitter_main.addWidget(self.field_values)
-
-		self.tabs.addTab(splitter_main, "Характеристики")
+	def _gui_resize_fields(self):
+		self.tree_fields.resizeColumnToContents(0)
 
 	def _set_field(self, in_field="", in_value=""):
 		_group = extract_field_group(in_field)
@@ -126,6 +131,7 @@ class FormEquipment(CForm):
 
 					if _item_field.text() == _field:
 						_item_group.setChild(_index_row, 1, _item_value)
+						_item_group.setCheckState(Qt.Checked)
 
 						break
 				break
@@ -153,6 +159,8 @@ class FormEquipment(CForm):
 		if in_id is not None:
 			self._equipment.load(in_id)
 
+			self.field_note.setText(self._equipment.note)
+
 			self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory, self._equipment.base.brand, self._equipment.base.model))
 
 			_list_fields = self._equipment.fields.get_list()
@@ -165,9 +173,6 @@ class FormEquipment(CForm):
 		self._gui_resize_fields()
 
 		self.showCentered()
-
-	def _gui_resize_fields(self):
-		self.tree_fields.resizeColumnToContents(0)
 
 	def save(self):
 		self._equipment.clear()
@@ -189,3 +194,40 @@ class FormEquipment(CForm):
 		self._equipment.note = self.field_note.text()
 
 		self._equipment.save()
+
+	def _get_current_main(self):
+		self.current_main_group = None
+		self.current_main_field = None
+
+		_current_index = self.tree_fields.currentIndex()
+		_current_row   = _current_index.row()
+		_current_item  = self.model_fields.itemFromIndex(_current_index)
+
+		# TODO обработка выбора 2го и далее столбца
+
+		if _current_item is not None:
+			_current_parent = _current_item.parent()
+
+			if _current_parent is None:
+				self.current_main_group = _current_item
+			else:
+				self.current_main_group = _current_parent
+				self.current_main_field = _current_item
+
+		self.load_list_values()
+		self.gui_enable_disable()
+
+	def click_on_field(self):
+		self.list_values.clear()
+
+	def gui_enable_disable(self):
+		pass
+
+	def load_list_values(self):
+		self.list_values.clear()
+
+		if self.current_main_field is not None:
+			_group = self.current_main_group.text()
+			_field = self.current_main_field.text()
+
+			self.list_values.addItems(self._equipment.get_values_by_field(_group, _field))

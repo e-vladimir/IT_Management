@@ -322,6 +322,8 @@ class CCatalogFieldGroup(CMetaObject):
 
 # Транзитные классы
 class GroupMeta:
+	_meta = None
+
 	def __init__(self, in_metaObject=None):
 		self._meta = in_metaObject
 
@@ -369,8 +371,6 @@ class GroupBase(GroupMeta):
 
 
 class GroupPlacement(GroupMeta):
-	_meta     = None
-
 	struct    = ""
 	placement = ""
 	people    = ""
@@ -419,3 +419,11 @@ class CEquipment(CMetaObject):
 
 		self.base.load()
 		self.placement.load()
+
+	def get_values_by_field(self, in_group="", in_field=""):
+		sql = "SELECT" \
+		      "  value " \
+		      "FROM {} " \
+		      "WHERE" \
+		      "  type='{}/{}'".format(TABLE_FIELDS, in_group, in_field)
+		return self.connection.get_list(sql)
