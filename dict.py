@@ -7,7 +7,7 @@ EQUIPMENT                 = "ОС и ТМЦ"
 
 # Группы характеристик
 FIELDS_GROUP_BASE         = "Общее описание"
-FIELDS_GROUP_PLACEMENT    = "Общее описание"
+FIELDS_GROUP_PLACEMENT    = "Местоположение"
 FIELDS_GROUP_ACCOUNTING   = "Бухгалтерия"
 
 # Каталог характеристик

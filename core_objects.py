@@ -3,12 +3,12 @@ from core_sqlite import *
 
 
 # Мета-конверторы
-def _extract_part(in_field, in_part):
+def _extract_part(in_field, in_part_num):
 	if in_field is not None:
 		_list = in_field.split("/")
 
-		if len(_list) > in_part:
-			return _list[in_part]
+		if len(_list) > in_part_num:
+			return _list[in_part_num]
 		else:
 			return None
 	else:

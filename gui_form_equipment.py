@@ -109,6 +109,24 @@ class FormEquipment(CForm):
 
 		self.tabs.addTab(splitter_main, "Характеристики")
 
+	def _set_field(self, in_field="", in_value=""):
+		_group = extract_field_group(in_field)
+		_field = extract_field_name(in_field)
+
+		_item_group = None
+		_item_field = None
+		_item_value = QStandartItemWithID(in_value)
+
+		for _index_row in range(self.model_fields.rowCount()):
+			_item_group = self.model_fields.item(_index_row)
+
+			if _item_group.text() == _group:
+				for _index_row in range(_group.childCount()):
+					# TODO
+					pass
+
+				break
+
 	def load_fields(self):
 		self.model_fields.clear()
 
@@ -134,6 +152,13 @@ class FormEquipment(CForm):
 
 			self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory, self._equipment.base.brand, self._equipment.base.model))
 
+			_list_fields = self._equipment.fields.get_list()
+
+			for _field in _list_fields:
+				_value = self._equipment.fields.get_field(_field)
+
+				self._set_field(_field, _value)
+
 		self._gui_resize_fields()
 
 		self.showCentered()
@@ -157,5 +182,7 @@ class FormEquipment(CForm):
 					value      = item_value.text()
 
 					self._equipment.set(group, field, value)
+
+		self._equipment.note = self.field_note.text()
 
 		self._equipment.save()
