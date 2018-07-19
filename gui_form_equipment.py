@@ -121,10 +121,13 @@ class FormEquipment(CForm):
 			_item_group = self.model_fields.item(_index_row)
 
 			if _item_group.text() == _group:
-				for _index_row in range(_group.childCount()):
-					# TODO
-					pass
+				for _index_row in range(_item_group.rowCount()):
+					_item_field = _item_group.child(_index_row)
 
+					if _item_field.text() == _field:
+						_item_group.setChild(_index_row, 1, _item_value)
+
+						break
 				break
 
 	def load_fields(self):
