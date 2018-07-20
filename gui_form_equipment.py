@@ -137,7 +137,14 @@ class FormEquipment(CForm):
 						_item_group.setCheckState(Qt.Checked)
 
 						break
+				else:
+					_item_group.appendRow([QStandartItemWithID(_field, None), QStandartItemWithID(in_value, None)])
+
 				break
+		else:
+			_item_group = QStandartItemWithID(_group, None)
+			_item_group.appendRow([QStandartItemWithID(_field, None), QStandartItemWithID(in_value, None)])
+			self.model_fields.appendRow([_item_group, NoneModelItem()])
 
 	def load_fields(self):
 		self.model_fields.clear()

@@ -67,7 +67,7 @@ class CMetaFields(CMeta):
 		      "(" \
 		      "  ID     INTEGER PRIMARY KEY ASC, " \
 		      "  ID_OBJ INTEGER, " \
-		      "  type   TEXT, " \
+		      "  field  TEXT, " \
 		      "  value  TEXT  " \
 		      ")".format(TABLE_FIELDS)
 
@@ -77,7 +77,7 @@ class CMetaFields(CMeta):
 		self._id_obj = in_id
 
 		sql = "SELECT "   \
-		      "  type, "  \
+		      "  field, " \
 		      "  value "  \
 		      "FROM {0} " \
 		      "WHERE "    \
@@ -140,9 +140,9 @@ class CMetaFields(CMeta):
 			for field in self._fields:
 				sql = "INSERT INTO {0} (" \
 				      "  ID_OBJ," \
-				      "  type,  " \
+				      "  field,  "\
 				      "  value )" \
-				      "VALUES (" \
+				      "VALUES ("  \
 				      "  '{1}', " \
 				      "  '{2}', " \
 				      "  '{3}' )".format(TABLE_FIELDS, self._id_obj, field, self._fields[field])
@@ -254,7 +254,7 @@ class CCatalogFieldGroups(CMeta):
 			      "FROM {0} " \
 			      "WHERE " \
 			      "  ID_OBJ='{1}' and " \
-			      "  type='{2}'".format(TABLE_FIELDS, _id, CATALOG_FIELDS_GROUP_NAME)
+			      "  field='{2}'".format(TABLE_FIELDS, _id, CATALOG_FIELDS_GROUP_NAME)
 			result.append(self.connection.get_single(sql))
 
 		return result
@@ -280,7 +280,7 @@ class CCatalogFieldGroup(CMetaObject):
 		      "  ID_OBJ " \
 		      "FROM {0} " \
 		      "WHERE " \
-		      "  type  ='{1}' and " \
+		      "  field  ='{1}' and " \
 		      "  value ='{2}'".format(TABLE_FIELDS, CATALOG_FIELDS_GROUP_NAME, in_name)
 		return self.connection.get_single(sql)
 
@@ -383,8 +383,8 @@ class GroupPlacement(GroupMeta):
 	def load(self):
 		super(GroupPlacement, self).load()
 
-		self.struct    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Подразделение")
-		self.placement = self._meta.get(FIELDS_GROUP_PLACEMENT, "Местоположение")
+		self.struct    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Структура")
+		self.placement = self._meta.get(FIELDS_GROUP_PLACEMENT, "Помещение")
 		self.people    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Сотрудник")
 
 
@@ -421,9 +421,11 @@ class CEquipment(CMetaObject):
 		self.placement.load()
 
 	def get_values_by_field(self, in_group="", in_field=""):
-		sql = "SELECT" \
+		sql = "SELECT DISTINCT " \
 		      "  value " \
 		      "FROM {} " \
 		      "WHERE" \
-		      "  type='{}/{}'".format(TABLE_FIELDS, in_group, in_field)
+		      "  field='{}/{}' " \
+		      "ORDER BY " \
+		      "  value ASC ".format(TABLE_FIELDS, in_group, in_field)
 		return self.connection.get_list(sql)

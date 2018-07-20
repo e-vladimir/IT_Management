@@ -92,13 +92,14 @@ class FormMain(CForm):
 		item_place_struct    = QStandartItemWithID(self._equipment.placement.struct,    in_id)
 		item_place_placement = QStandartItemWithID(self._equipment.placement.placement, in_id)
 		item_place_people    = QStandartItemWithID(self._equipment.placement.people,    in_id)
+		item_note            = QStandartItemWithID(self._equipment.note,                in_id)
 
 		item_brand.setFont(FONT_BOLD)
 		item_model.setFont(FONT_BOLD)
 
 		item_state.setFont(FONT_ITALIC)
 
-		self.model_equipment.appendRow([item_category, item_subcategory, item_brand, item_model, item_state, item_place_struct, item_place_placement, item_place_people])
+		self.model_equipment.appendRow([item_category, item_subcategory, item_brand, item_model, item_state, item_place_struct, item_place_placement, item_place_people, item_note])
 
 	def _equipment_get_current(self):
 		_current_index = self.panel_equipment.currentIndex()
