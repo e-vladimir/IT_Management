@@ -19,6 +19,7 @@ class FormEquipment(CForm):
 
 	current_main_group = None
 	current_main_field = None
+	current_main_value = None
 
 	def __init_actions__(self):
 		self.action_save         = QAction(self.icon_small_save,   "Сохранить",           None)
@@ -32,6 +33,8 @@ class FormEquipment(CForm):
 		self.tree_fields.collapsed.connect(self._gui_resize_fields)
 
 		self.tree_fields.clicked.connect(self._get_current_main)
+
+		self.list_values.doubleClicked.connect(self.select_value)
 
 		self.action_save.triggered.connect(self.save)
 
@@ -199,6 +202,7 @@ class FormEquipment(CForm):
 	def _get_current_main(self):
 		self.current_main_group = None
 		self.current_main_field = None
+		self.current_main_value = None
 
 		_current_index = self.tree_fields.currentIndex()
 		_current_row   = _current_index.row()
@@ -211,13 +215,11 @@ class FormEquipment(CForm):
 				self.current_main_group = _current_item
 			else:
 				self.current_main_group = _current_parent
-				self.current_main_field = _current_parent.child(_current_row)
+				self.current_main_field = _current_parent.child(_current_row, 0)
+				self.current_main_value = _current_parent.child(_current_row, 1)
 
 		self.load_list_values()
 		self.gui_enable_disable()
-
-	def click_on_field(self):
-		self.list_values.clear()
 
 	def gui_enable_disable(self):
 		pass
@@ -230,3 +232,8 @@ class FormEquipment(CForm):
 			_field = self.current_main_field.text()
 
 			self.list_values.addItems(self._equipment.get_values_by_field(_group, _field))
+
+	def select_value(self):
+		_item  = self.list_values.currentItem()
+		_value = _item.text()
+		self.current_main_value.setText(_value)
