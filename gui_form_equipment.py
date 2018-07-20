@@ -149,7 +149,8 @@ class FormEquipment(CForm):
 
 			list_fields = self._group.get_fields()
 			for field in list_fields:
-				item_group.appendRow([QStandartItemWithID(field, None), NoneModelItem()])
+				_value = self._equipment.get(self._group.name, field)
+				item_group.appendRow([QStandartItemWithID(field, None), QStandartItemWithID(_value, None)])
 
 			self.model_fields.appendRow([item_group, NoneModelItem()])
 
@@ -203,8 +204,6 @@ class FormEquipment(CForm):
 		_current_row   = _current_index.row()
 		_current_item  = self.model_fields.itemFromIndex(_current_index)
 
-		# TODO обработка выбора 2го и далее столбца
-
 		if _current_item is not None:
 			_current_parent = _current_item.parent()
 
@@ -212,7 +211,7 @@ class FormEquipment(CForm):
 				self.current_main_group = _current_item
 			else:
 				self.current_main_group = _current_parent
-				self.current_main_field = _current_item
+				self.current_main_field = _current_parent.child(_current_row)
 
 		self.load_list_values()
 		self.gui_enable_disable()
