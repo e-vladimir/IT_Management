@@ -159,8 +159,7 @@ class FormEquipment(CForm):
 
 			list_fields = self._group.get_fields()
 			for field in list_fields:
-				_value = self._equipment.get(self._group.name, field)
-				item_group.appendRow([QStandartItemWithID(field), QStandartItemWithID(_value)])
+				item_group.appendRow([QStandartItemWithID(field), QStandartItemWithID("")])
 
 			self.model_fields.appendRow([item_group, NoneModelItem()])
 
