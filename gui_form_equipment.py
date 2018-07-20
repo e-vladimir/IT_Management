@@ -129,42 +129,44 @@ class FormEquipment(CForm):
 			_item_group = self.model_fields.item(_index_row)
 
 			if _item_group.text() == _group:
-				for _index_row in range(_item_group.rowCount()):
-					_item_field = _item_group.child(_index_row)
+				for _index_subrow in range(_item_group.rowCount()):
+					_item_field = _item_group.child(_index_subrow)
 
 					if _item_field.text() == _field:
-						_item_group.setChild(_index_row, 1, _item_value)
+						_item_group.setChild(_index_subrow, 1, _item_value)
 						_item_group.setCheckState(Qt.Checked)
 
 						break
 				else:
-					_item_group.appendRow([QStandartItemWithID(_field, None), QStandartItemWithID(in_value, None)])
+					_item_group.setCheckState(Qt.Checked)
+					_item_group.appendRow([QStandartItemWithID(_field), QStandartItemWithID("")])
 
 				break
 		else:
-			_item_group = QStandartItemWithID(_group, None)
-			_item_group.appendRow([QStandartItemWithID(_field, None), QStandartItemWithID(in_value, None)])
+			_item_group = QStandartItemWithID(_group)
+			_item_group.setCheckable(True)
+			_item_group.appendRow([QStandartItemWithID(_field), _item_value])
 			self.model_fields.appendRow([_item_group, NoneModelItem()])
 
 	def load_fields(self):
-		self.model_fields.clear()
-
 		list_groups = self._groups.get_list()
 
 		for group in list_groups:
 			self._group.load(group)
 
-			item_group = QStandartItemWithID(self._group.name, None)
+			item_group = QStandartItemWithID(self._group.name)
 			item_group.setCheckable(True)
 
 			list_fields = self._group.get_fields()
 			for field in list_fields:
 				_value = self._equipment.get(self._group.name, field)
-				item_group.appendRow([QStandartItemWithID(field, None), QStandartItemWithID(_value, None)])
+				item_group.appendRow([QStandartItemWithID(field), QStandartItemWithID(_value)])
 
 			self.model_fields.appendRow([item_group, NoneModelItem()])
 
 	def load(self, in_id=None):
+		self.model_fields.clear()
+
 		self.load_fields()
 
 		if in_id is not None:
