@@ -22,11 +22,18 @@ class FormEquipment(CForm):
 	current_main_value = None
 
 	def __init_actions__(self):
-		self.action_save         = QAction(self.icon_small_save,   "Сохранить",           None)
-		self.action_save_as_copy = QAction(self.icon_small_save,   "Сохранить как копию", None)
-		self.action_delete       = QAction(self.icon_small_delete, "Удалить",             None)
-		self.action_open         = QAction(self.icon_small_open,   "Загрузить",           None)
-		self.action_close        = QAction(self.icon_small_close,  "Закрыть",             None)
+		self.action_save           = QAction(self.icon_small_save,   "Сохранить",               None)
+		self.action_save_and_close = QAction(self.icon_small_save,   "Сохранить и закрыть",     None)
+		self.action_save_as_copy   = QAction(self.icon_small_save,   "Сохранить как копию",     None)
+		self.action_delete         = QAction(self.icon_small_delete, "Удалить",                 None)
+		self.action_open           = QAction(self.icon_small_open,   "Загрузить",               None)
+		self.action_close          = QAction(self.icon_small_close,  "Закрыть",                 None)
+
+		self.action_field_add      = QAction(self.icon_small_insert, "Добавить характеристику", None)
+		self.action_field_delete   = QAction(self.icon_small_delete, "Удалить характеристику",  None)
+
+		self.action_field_up       = QAction(self.icon_small_up,     "Переместить выше",                None)
+		self.action_field_down     = QAction(self.icon_small_down,   "Переместить ниже",                None)
 
 	def __init_events__(self):
 		self.tree_fields.expanded.connect(self._gui_resize_fields)
@@ -37,6 +44,7 @@ class FormEquipment(CForm):
 		self.list_values.doubleClicked.connect(self.select_value)
 
 		self.action_save.triggered.connect(self.save)
+		self.action_save_and_close.triggered.connect(self.save_and_close)
 
 	def __init_icons__(self):
 		self.icon_small_insert = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
@@ -62,6 +70,7 @@ class FormEquipment(CForm):
 	def __init_menu__(self):
 		menu_actions = QMenu("Действия")
 		menu_actions.addAction(self.action_save)
+		menu_actions.addAction(self.action_save_and_close)
 		menu_actions.addAction(self.action_save_as_copy)
 		menu_actions.addSeparator()
 		menu_actions.addAction(self.action_open)
@@ -70,7 +79,15 @@ class FormEquipment(CForm):
 		menu_actions.addSeparator()
 		menu_actions.addAction(self.action_close)
 
+		menu_fields = QMenu("Характеристики")
+		menu_fields.addAction(self.action_field_add)
+		menu_fields.addAction(self.action_field_delete)
+		menu_fields.addSeparator()
+		menu_fields.addAction(self.action_field_up)
+		menu_fields.addAction(self.action_field_down)
+
 		self.menuBar().addMenu(menu_actions)
+		self.menuBar().addMenu(menu_fields)
 
 	def __init_ui__(self):
 		super(FormEquipment, self).__init_ui__()
@@ -247,4 +264,9 @@ class FormEquipment(CForm):
 	def select_value(self):
 		_item  = self.list_values.currentItem()
 		_value = _item.text()
+
 		self.current_main_value.setText(_value)
+
+	def save_and_close(self):
+		self.save()
+		self.close()

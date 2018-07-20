@@ -30,6 +30,7 @@ class FormMain(CForm):
 	def __init_icons__(self):
 		self.icon_small_equipment = QIcon(self.application.PATH_ICONS_SMALL + "equipments.png")
 		self.icon_small_catalog   = QIcon(self.application.PATH_ICONS_SMALL + "catalog.png")
+
 		self.icon_small_add       = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
 		self.icon_small_delete    = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
 
