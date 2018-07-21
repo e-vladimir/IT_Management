@@ -49,6 +49,9 @@ class FormEquipment(CForm):
 		self.action_field_delete.triggered.connect(self.field_delete)
 		self.action_field_add.triggered.connect(self.field_add)
 
+		self.action_field_up.triggered.connect(self.field_up)
+		self.action_field_down.triggered.connect(self.field_down)
+
 	def __init_icons__(self):
 		self.icon_small_insert = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
 		self.icon_small_delete = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
@@ -300,3 +303,21 @@ class FormEquipment(CForm):
 
 		if _result:
 			self.current_main_group.appendRow([QStandartItemWithID(_text), NoneModelItem()])
+
+	def field_up(self):
+		current_row = self.current_main_field.row()
+		_row        = self.current_main_group.takeRow(current_row)
+
+		self.current_main_group.insertRow(current_row - 1, _row)
+		self.tree_fields.setCurrentIndex(self.model_fields.indexFromItem(self.current_main_field))
+
+		self._get_current_main()
+
+	def field_down(self):
+		current_row = self.current_main_field.row()
+		_row        = self.current_main_group.takeRow(current_row)
+
+		self.current_main_group.insertRow(current_row + 1, _row)
+		self.tree_fields.setCurrentIndex(self.model_fields.indexFromItem(self.current_main_field))
+
+		self._get_current_main()
