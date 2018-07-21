@@ -337,55 +337,53 @@ class GroupMeta:
 
 
 class GroupBase(GroupMeta):
-	category    = ""
-	subcategory = ""
+	category             = ""
+	subcategory          = ""
 
-	brand       = ""
-	model       = ""
-	serial_num  = ""
-	description = ""
+	brand                = ""
+	model                = ""
+	serial_num           = ""
+	description          = ""
 
-	state       = ""
+	state                = ""
 
 	def clear(self):
-		self.category    = ""
-		self.subcategory = ""
-
 		self.brand       = ""
+		self.category    = ""
+		self.description = ""
 		self.model       = ""
 		self.serial_num  = ""
-		self.description = ""
-
 		self.state       = ""
+		self.subcategory = ""
 
 	def load(self):
 		super(GroupBase, self).load()
 
-		self.category    = self._meta.get(FIELDS_GROUP_BASE, "Категория")
-		self.subcategory = self._meta.get(FIELDS_GROUP_BASE, "Подкатегория")
 		self.brand       = self._meta.get(FIELDS_GROUP_BASE, "Производитель")
+		self.category    = self._meta.get(FIELDS_GROUP_BASE, "Категория")
+		self.description = self._meta.get(FIELDS_GROUP_BASE, "Описание")
 		self.model       = self._meta.get(FIELDS_GROUP_BASE, "Модель")
 		self.serial_num  = self._meta.get(FIELDS_GROUP_BASE, "Серийный номер")
-		self.description = self._meta.get(FIELDS_GROUP_BASE, "Описание")
 		self.state       = self._meta.get(FIELDS_GROUP_BASE, "Состояние")
+		self.subcategory = self._meta.get(FIELDS_GROUP_BASE, "Подкатегория")
 
 
 class GroupPlacement(GroupMeta):
-	struct    = ""
-	placement = ""
-	people    = ""
+	people             = ""
+	placement          = ""
+	struct             = ""
 
 	def clear(self):
-		self.struct    = ""
-		self.placement = ""
 		self.people    = ""
+		self.placement = ""
+		self.struct    = ""
 
 	def load(self):
 		super(GroupPlacement, self).load()
 
-		self.struct    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Структура")
-		self.placement = self._meta.get(FIELDS_GROUP_PLACEMENT, "Помещение")
 		self.people    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Сотрудник")
+		self.placement = self._meta.get(FIELDS_GROUP_PLACEMENT, "Помещение")
+		self.struct    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Структура")
 
 
 # ОС и ТМЦ
@@ -399,13 +397,13 @@ class CEquipments(CMeta):
 
 
 class CEquipment(CMetaObject):
-	type          = EQUIPMENT
+	type                   = EQUIPMENT
 
-	base          = GroupBase
-	placement     = GroupPlacement
+	base                   = GroupBase
+	placement              = GroupPlacement
 
-	_field_groups = CCatalogFieldGroups
-	_field_group  = CCatalogFieldGroup
+	_field_groups          = CCatalogFieldGroups
+	_field_group           = CCatalogFieldGroup
 
 	def __init_objects__(self):
 		self._field_groups = CCatalogFieldGroups(self.connection)

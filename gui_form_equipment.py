@@ -46,6 +46,9 @@ class FormEquipment(CForm):
 		self.action_save.triggered.connect(self.save)
 		self.action_save_and_close.triggered.connect(self.save_and_close)
 
+		self.action_field_delete.triggered.connect(self.field_delete)
+		self.action_field_add.triggered.connect(self.field_add)
+
 	def __init_icons__(self):
 		self.icon_small_insert = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
 		self.icon_small_delete = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
@@ -205,6 +208,7 @@ class FormEquipment(CForm):
 		self._gui_resize_fields()
 
 		self.showCentered()
+		self._get_current_main()
 
 	def save(self):
 		self._equipment.clear()
@@ -250,7 +254,20 @@ class FormEquipment(CForm):
 		self.gui_enable_disable()
 
 	def gui_enable_disable(self):
-		pass
+		self.action_field_add.setEnabled(self.current_main_group is not None)
+
+		self.action_field_delete.setEnabled(self.current_main_field is not None)
+
+		if self.current_main_field is not None:
+			self.action_field_delete.setText("Удалить: " + self.current_main_field.text())
+
+			self.action_field_up.setEnabled(self.current_main_field.row() > 0)
+			self.action_field_down.setEnabled(self.current_main_field.row() < (self.current_main_group.rowCount() - 1))
+		else:
+			self.action_field_delete.setText("Удалить характеристику")
+
+			self.action_field_up.setEnabled(False)
+			self.action_field_down.setEnabled(False)
 
 	def load_list_values(self):
 		self.list_values.clear()
@@ -270,3 +287,16 @@ class FormEquipment(CForm):
 	def save_and_close(self):
 		self.save()
 		self.close()
+
+	def field_delete(self):
+		_row = self.current_main_field.row()
+
+		self.current_main_group.removeRow(_row)
+
+	def field_add(self):
+		_dialog = QInputDialog()
+
+		_text, _result = _dialog.getText(self, "Новая характеристика", "Категория: {}".format(self.current_main_group.text()))
+
+		if _result:
+			self.current_main_group.appendRow([QStandartItemWithID(_text), NoneModelItem()])
