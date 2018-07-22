@@ -3,12 +3,12 @@ from core_sqlite import *
 
 
 # Мета-конверторы
-def _extract_part(in_field, in_part):
+def _extract_part(in_field, in_part_num):
 	if in_field is not None:
 		_list = in_field.split("/")
 
-		if len(_list) > in_part:
-			return _list[in_part]
+		if len(_list) > in_part_num:
+			return _list[in_part_num]
 		else:
 			return None
 	else:
@@ -67,7 +67,7 @@ class CMetaFields(CMeta):
 		      "(" \
 		      "  ID     INTEGER PRIMARY KEY ASC, " \
 		      "  ID_OBJ INTEGER, " \
-		      "  type   TEXT, " \
+		      "  field  TEXT, " \
 		      "  value  TEXT  " \
 		      ")".format(TABLE_FIELDS)
 
@@ -77,7 +77,7 @@ class CMetaFields(CMeta):
 		self._id_obj = in_id
 
 		sql = "SELECT "   \
-		      "  type, "  \
+		      "  field, " \
 		      "  value "  \
 		      "FROM {0} " \
 		      "WHERE "    \
@@ -140,9 +140,9 @@ class CMetaFields(CMeta):
 			for field in self._fields:
 				sql = "INSERT INTO {0} (" \
 				      "  ID_OBJ," \
-				      "  type,  " \
+				      "  field,  "\
 				      "  value )" \
-				      "VALUES (" \
+				      "VALUES ("  \
 				      "  '{1}', " \
 				      "  '{2}', " \
 				      "  '{3}' )".format(TABLE_FIELDS, self._id_obj, field, self._fields[field])
@@ -254,7 +254,7 @@ class CCatalogFieldGroups(CMeta):
 			      "FROM {0} " \
 			      "WHERE " \
 			      "  ID_OBJ='{1}' and " \
-			      "  type='{2}'".format(TABLE_FIELDS, _id, CATALOG_FIELDS_GROUP_NAME)
+			      "  field='{2}'".format(TABLE_FIELDS, _id, CATALOG_FIELDS_GROUP_NAME)
 			result.append(self.connection.get_single(sql))
 
 		return result
@@ -280,7 +280,7 @@ class CCatalogFieldGroup(CMetaObject):
 		      "  ID_OBJ " \
 		      "FROM {0} " \
 		      "WHERE " \
-		      "  type  ='{1}' and " \
+		      "  field  ='{1}' and " \
 		      "  value ='{2}'".format(TABLE_FIELDS, CATALOG_FIELDS_GROUP_NAME, in_name)
 		return self.connection.get_single(sql)
 
@@ -322,6 +322,8 @@ class CCatalogFieldGroup(CMetaObject):
 
 # Транзитные классы
 class GroupMeta:
+	_meta = None
+
 	def __init__(self, in_metaObject=None):
 		self._meta = in_metaObject
 
@@ -335,57 +337,53 @@ class GroupMeta:
 
 
 class GroupBase(GroupMeta):
-	category    = ""
-	subcategory = ""
+	category             = ""
+	subcategory          = ""
 
-	producer    = ""
-	model       = ""
-	serial_num  = ""
-	description = ""
+	brand                = ""
+	model                = ""
+	serial_num           = ""
+	description          = ""
 
-	state       = ""
+	state                = ""
 
 	def clear(self):
+		self.brand       = ""
 		self.category    = ""
-		self.subcategory = ""
-
-		self.producer    = ""
+		self.description = ""
 		self.model       = ""
 		self.serial_num  = ""
-		self.description = ""
-
 		self.state       = ""
+		self.subcategory = ""
 
 	def load(self):
 		super(GroupBase, self).load()
 
+		self.brand       = self._meta.get(FIELDS_GROUP_BASE, "Производитель")
 		self.category    = self._meta.get(FIELDS_GROUP_BASE, "Категория")
-		self.subcategory = self._meta.get(FIELDS_GROUP_BASE, "Подкатегория")
-		self.producer    = self._meta.get(FIELDS_GROUP_BASE, "Производитель")
+		self.description = self._meta.get(FIELDS_GROUP_BASE, "Описание")
 		self.model       = self._meta.get(FIELDS_GROUP_BASE, "Модель")
 		self.serial_num  = self._meta.get(FIELDS_GROUP_BASE, "Серийный номер")
-		self.description = self._meta.get(FIELDS_GROUP_BASE, "Описание")
 		self.state       = self._meta.get(FIELDS_GROUP_BASE, "Состояние")
+		self.subcategory = self._meta.get(FIELDS_GROUP_BASE, "Подкатегория")
 
 
 class GroupPlacement(GroupMeta):
-	_meta     = None
-
-	struct    = ""
-	placement = ""
-	people    = ""
+	people             = ""
+	placement          = ""
+	struct             = ""
 
 	def clear(self):
-		self.struct    = ""
-		self.placement = ""
 		self.people    = ""
+		self.placement = ""
+		self.struct    = ""
 
 	def load(self):
 		super(GroupPlacement, self).load()
 
-		self.struct    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Подразделение")
-		self.placement = self._meta.get(FIELDS_GROUP_PLACEMENT, "Местоположение")
 		self.people    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Сотрудник")
+		self.placement = self._meta.get(FIELDS_GROUP_PLACEMENT, "Помещение")
+		self.struct    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Структура")
 
 
 # ОС и ТМЦ
@@ -399,13 +397,13 @@ class CEquipments(CMeta):
 
 
 class CEquipment(CMetaObject):
-	type          = EQUIPMENT
+	type                   = EQUIPMENT
 
-	base          = GroupBase
-	placement     = GroupPlacement
+	base                   = GroupBase
+	placement              = GroupPlacement
 
-	_field_groups = CCatalogFieldGroups
-	_field_group  = CCatalogFieldGroup
+	_field_groups          = CCatalogFieldGroups
+	_field_group           = CCatalogFieldGroup
 
 	def __init_objects__(self):
 		self._field_groups = CCatalogFieldGroups(self.connection)
@@ -419,3 +417,13 @@ class CEquipment(CMetaObject):
 
 		self.base.load()
 		self.placement.load()
+
+	def get_values_by_field(self, in_group="", in_field=""):
+		sql = "SELECT DISTINCT " \
+		      "  value " \
+		      "FROM {} " \
+		      "WHERE" \
+		      "  field='{}/{}' " \
+		      "ORDER BY " \
+		      "  value ASC ".format(TABLE_FIELDS, in_group, in_field)
+		return self.connection.get_list(sql)

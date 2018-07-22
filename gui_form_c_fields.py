@@ -193,13 +193,13 @@ class FormCatalogFields(CForm):
 		item_group.appendRow(QStandartItemWithID("Производитель",        None))
 		item_group.appendRow(QStandartItemWithID("Модель",               None))
 		item_group.appendRow(QStandartItemWithID("Серийный номер",       None))
-		item_group.appendRow(QStandartItemWithID("Техническое описание", None))
+		item_group.appendRow(QStandartItemWithID("Описание", None))
 		item_group.appendRow(QStandartItemWithID("Состояние",            None))
 		self.model_fields.appendRow(item_group)
 
 		item_group = QStandartItemWithID(FIELDS_GROUP_PLACEMENT, None)
-		item_group.appendRow(QStandartItemWithID("Подразделение",        None))
-		item_group.appendRow(QStandartItemWithID("Местоположение",       None))
+		item_group.appendRow(QStandartItemWithID("Структура",            None))
+		item_group.appendRow(QStandartItemWithID("Помещение",            None))
 		item_group.appendRow(QStandartItemWithID("Сотрудник",            None))
 		self.model_fields.appendRow(item_group)
 
