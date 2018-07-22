@@ -46,6 +46,11 @@ class CForm(QMainWindow):
 		self.__init_menu__()
 		self.__init_toolbar__()
 
+		self.__ui__()
+
+	def __ui__(self):
+		pass
+
 	def __init_objects__(self):
 		pass
 

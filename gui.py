@@ -4,6 +4,7 @@ from core_sqlite        import *
 from gui_form_main      import FormMain
 from gui_form_c_fields  import FormCatalogFields
 from gui_form_equipment import FormEquipment
+from gui_form_s_fields  import FormServiceFields
 
 
 class AppManage(CApplication):
@@ -24,6 +25,7 @@ class AppManage(CApplication):
 	def init_forms(self):
 		self.form_main           = FormMain(self)
 		self.form_catalog_fields = FormCatalogFields(self)
+		self.form_service_fields = FormServiceFields(self)
 		self.form_equipment      = FormEquipment(self)
 
 	def init_sql(self):
