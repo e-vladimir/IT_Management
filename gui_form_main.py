@@ -17,7 +17,8 @@ class FormMain(CForm):
 		self.action_equipment_add          = QAction(self.icon_small_add,       "Добавить ОС или ТМЦ",     None)
 		self.action_equipment_delete       = QAction(self.icon_small_delete,    "Удалить <ОС или ТМЦ>",    None)
 
-		self.action_service_replace_fields = QAction(self.icon_small_fields,    "Обработка характеристик", None)
+		self.action_service_replace_fields = QAction(self.icon_small_fields,    "Замена названия", None)
+		self.action_service_set_value      = QAction(self.icon_small_search,    "Запись значения", None)
 
 	def __init_events__(self):
 		self.action_select_equipment.triggered.connect(self._select_equipments)
@@ -27,7 +28,8 @@ class FormMain(CForm):
 
 		self.action_catalogs_fields.triggered.connect(self.open_catalog_fields)
 
-		self.action_service_replace_fields.triggered.connect(self.open_service_fields)
+		self.action_service_replace_fields.triggered.connect(self.open_service_replace_fields)
+		self.action_service_set_value.triggered.connect(self.open_service_set_value)
 
 		self.panel_equipment.clicked.connect(self._equipment_get_current)
 		self.panel_equipment.doubleClicked.connect(self.equipment_load)
@@ -36,6 +38,7 @@ class FormMain(CForm):
 		self.icon_small_equipment = QIcon(self.application.PATH_ICONS_SMALL + "equipments.png")
 		self.icon_small_catalog   = QIcon(self.application.PATH_ICONS_SMALL + "catalog.png")
 		self.icon_small_fields    = QIcon(self.application.PATH_ICONS_SMALL + "fields.png")
+		self.icon_small_search    = QIcon(self.application.PATH_ICONS_SMALL + "search_field.png")
 
 		self.icon_small_add       = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
 		self.icon_small_delete    = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
@@ -55,6 +58,7 @@ class FormMain(CForm):
 
 		self.menu_service   = QMenu("Сервис")
 		self.menu_service.addAction(self.action_service_replace_fields)
+		self.menu_service.addAction(self.action_service_set_value)
 
 		self.menuBar().addMenu(self.menu_sections)
 		self.menuBar().addMenu(self.menu_catalogs)
@@ -184,5 +188,9 @@ class FormMain(CForm):
 	def open_catalog_fields(self):
 		self.application.form_catalog_fields.load_and_show()
 
-	def open_service_fields(self):
+	def open_service_replace_fields(self):
 		self.application.form_service_fields.open_replace_field()
+
+	def open_service_set_value(self):
+		self.application.form_service_fields.open_set_value()
+

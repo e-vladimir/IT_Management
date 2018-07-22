@@ -447,6 +447,13 @@ class CEquipments(CMeta):
 
 		return result
 
+	def get_list_values(self, in_field):
+		sql = "SELECT value " \
+		      "FROM {} " \
+		      "WHERE " \
+		      "  field='{}'".format(TABLE_FIELDS, in_field)
+		return self.connection.get_list(sql)
+
 	def replace_field(self, old_field, new_field):
 		_commit = True
 
@@ -480,6 +487,14 @@ class CEquipments(CMeta):
 			self.connection.transaction_rollback()
 
 		return _commit
+
+	def set_value(self, in_field, in_value):
+		sql = "UPDATE {} " \
+		      "SET " \
+		      "  value='{}' " \
+		      "WHERE " \
+		      "  field='{}'".format(TABLE_FIELDS, in_value, in_field)
+		return self.connection.exec_update(sql)
 
 
 class CEquipment(CMetaObject):
