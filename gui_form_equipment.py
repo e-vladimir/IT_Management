@@ -26,14 +26,14 @@ class FormEquipment(CForm):
 		self.action_save_and_close = QAction(self.icon_small_save,   "Сохранить и закрыть",     None)
 		self.action_save_as_copy   = QAction(self.icon_small_save,   "Сохранить как копию",     None)
 		self.action_delete         = QAction(self.icon_small_delete, "Удалить",                 None)
-		self.action_open           = QAction(self.icon_small_open,   "Загрузить",               None)
+		self.action_load           = QAction(self.icon_small_open,   "Загрузить",               None)
 		self.action_close          = QAction(self.icon_small_close,  "Закрыть",                 None)
 
 		self.action_field_add      = QAction(self.icon_small_insert, "Добавить характеристику", None)
 		self.action_field_delete   = QAction(self.icon_small_delete, "Удалить характеристику",  None)
 
-		self.action_field_up       = QAction(self.icon_small_up,     "Переместить выше",                None)
-		self.action_field_down     = QAction(self.icon_small_down,   "Переместить ниже",                None)
+		self.action_field_up       = QAction(self.icon_small_up,     "Переместить выше",        None)
+		self.action_field_down     = QAction(self.icon_small_down,   "Переместить ниже",        None)
 
 	def __init_events__(self):
 		self.tree_fields.expanded.connect(self._gui_resize_fields)
@@ -45,6 +45,11 @@ class FormEquipment(CForm):
 
 		self.action_save.triggered.connect(self.save)
 		self.action_save_and_close.triggered.connect(self.save_and_close)
+
+		self.action_delete.triggered.connect(self.delete)
+
+		self.action_load.triggered.connect(self.load)
+		self.action_close.triggered.connect(self.close)
 
 		self.action_field_delete.triggered.connect(self.field_delete)
 		self.action_field_add.triggered.connect(self.field_add)
@@ -79,7 +84,7 @@ class FormEquipment(CForm):
 		menu_actions.addAction(self.action_save_and_close)
 		menu_actions.addAction(self.action_save_as_copy)
 		menu_actions.addSeparator()
-		menu_actions.addAction(self.action_open)
+		menu_actions.addAction(self.action_load)
 		menu_actions.addSeparator()
 		menu_actions.addAction(self.action_delete)
 		menu_actions.addSeparator()
@@ -196,17 +201,19 @@ class FormEquipment(CForm):
 
 		if in_id is not None:
 			self._equipment.load(in_id)
+		else:
+			self._equipment.load()
 
-			self.field_note.setText(self._equipment.note)
+		self.field_note.setText(self._equipment.note)
 
-			self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory, self._equipment.base.brand, self._equipment.base.model))
+		self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory, self._equipment.base.brand, self._equipment.base.model))
 
-			_list_fields = self._equipment.fields.get_list()
+		_list_fields = self._equipment.fields.get_list()
 
-			for _field in _list_fields:
-				_value = self._equipment.fields.get_field(_field)
+		for _field in _list_fields:
+			_value = self._equipment.fields.get_field(_field)
 
-				self._set_field(_field, _value)
+			self._set_field(_field, _value)
 
 		self._gui_resize_fields()
 
@@ -233,6 +240,8 @@ class FormEquipment(CForm):
 		self._equipment.note = self.field_note.text()
 
 		self._equipment.save()
+
+		self.application.form_main.equipments_load()
 
 	def _get_current_main(self):
 		self.current_main_group = None
@@ -321,3 +330,33 @@ class FormEquipment(CForm):
 		self.tree_fields.setCurrentIndex(self.model_fields.indexFromItem(self.current_main_field))
 
 		self._get_current_main()
+
+	def show(self, *args, **kwargs):
+		super(FormEquipment, self).show(*args, **kwargs)
+
+		self.action_load.setEnabled(self._equipment.id is not None)
+		self.action_delete.setEnabled(self._equipment.id is not None)
+
+	def new(self):
+		self._equipment.clear(True)
+		self.load()
+
+	def new_and_show(self):
+		self.new()
+		self.show()
+
+	def delete(self):
+		_dialog = QMessageBox()
+
+		_result = _dialog.question(self,
+		                           "Удаление ОС и ТМЦ",
+		                           "Подтвердите удаление: {} {}".format(self._equipment.base.brand,
+		                                                                self._equipment.base.model),
+		                           QMessageBox.Yes | QMessageBox.No)
+
+		if _result == QMessageBox.Yes:
+			self._equipment.delete()
+
+			self.close()
+
+			self.application.form_main.equipments_load()
