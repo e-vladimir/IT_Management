@@ -481,6 +481,7 @@ class CEquipments(CMeta):
 
 		return _commit
 
+
 class CEquipment(CMetaObject):
 	type                   = EQUIPMENT
 

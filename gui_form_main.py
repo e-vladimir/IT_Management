@@ -185,5 +185,4 @@ class FormMain(CForm):
 		self.application.form_catalog_fields.load_and_show()
 
 	def open_service_fields(self):
-		self.application.form_service_fields.replace_load()
-		self.application.form_service_fields.showCentered()
+		self.application.form_service_fields.open_replace_field()
