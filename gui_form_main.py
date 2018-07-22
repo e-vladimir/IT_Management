@@ -11,11 +11,13 @@ class FormMain(CForm):
 	_current_equipment_item = None
 
 	def __init_actions__(self):
-		self.action_select_equipment = QAction(self.icon_small_equipment, "Учёт ОС и ТМЦ",        None)
-		self.action_catalogs_fields  = QAction(self.icon_small_equipment, "Характеристики",       None)
+		self.action_select_equipment       = QAction(self.icon_small_equipment, "Учёт ОС и ТМЦ",           None)
+		self.action_catalogs_fields        = QAction(self.icon_small_equipment, "Характеристики",          None)
 
-		self.action_equipment_add    = QAction(self.icon_small_add,       "Добавить ОС или ТМЦ",  None)
-		self.action_equipment_delete = QAction(self.icon_small_delete,    "Удалить <ОС или ТМЦ>", None)
+		self.action_equipment_add          = QAction(self.icon_small_add,       "Добавить ОС или ТМЦ",     None)
+		self.action_equipment_delete       = QAction(self.icon_small_delete,    "Удалить <ОС или ТМЦ>",    None)
+
+		self.action_service_replace_fields = QAction(self.icon_small_fields,    "Обработка характеристик", None)
 
 	def __init_events__(self):
 		self.action_select_equipment.triggered.connect(self._select_equipments)
@@ -25,12 +27,15 @@ class FormMain(CForm):
 
 		self.action_catalogs_fields.triggered.connect(self.open_catalog_fields)
 
+		self.action_service_replace_fields.triggered.connect(self.open_service_fields)
+
 		self.panel_equipment.clicked.connect(self._equipment_get_current)
 		self.panel_equipment.doubleClicked.connect(self.equipment_load)
 
 	def __init_icons__(self):
 		self.icon_small_equipment = QIcon(self.application.PATH_ICONS_SMALL + "equipments.png")
 		self.icon_small_catalog   = QIcon(self.application.PATH_ICONS_SMALL + "catalog.png")
+		self.icon_small_fields    = QIcon(self.application.PATH_ICONS_SMALL + "fields.png")
 
 		self.icon_small_add       = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
 		self.icon_small_delete    = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
@@ -48,8 +53,12 @@ class FormMain(CForm):
 		self.menu_equipment.addSeparator()
 		self.menu_equipment.addAction(self.action_equipment_delete)
 
+		self.menu_service   = QMenu("Сервис")
+		self.menu_service.addAction(self.action_service_replace_fields)
+
 		self.menuBar().addMenu(self.menu_sections)
 		self.menuBar().addMenu(self.menu_catalogs)
+		self.menuBar().addMenu(self.menu_service)
 
 	def __init_objects__(self):
 		self.model_equipment = QStandardItemModel()
@@ -57,9 +66,7 @@ class FormMain(CForm):
 		self._equipment  = CEquipment(self.application.sql_connection)
 		self._equipments = CEquipments(self.application.sql_connection)
 
-	def __init_ui__(self):
-		super(FormMain, self).__init_ui__()
-
+	def __ui__(self):
 		self.setMinimumSize(800, 640)
 		self.setWindowTitle("IT-management")
 
@@ -70,18 +77,6 @@ class FormMain(CForm):
 		self.panel_equipment.setModel(self.model_equipment)
 		self.panel_equipment.header().hide()
 		self.panel_equipment.setEditTriggers(QTreeView.NoEditTriggers)
-
-	def _select_equipments(self):
-		self.equipments_load()
-
-		self.menu_sections.setTitle(self.action_select_equipment.text())
-
-		self.setCentralWidget(self.panel_equipment)
-
-		self.menuBar().clear()
-		self.menuBar().addMenu(self.menu_sections)
-		self.menuBar().addMenu(self.menu_equipment)
-		self.menuBar().addMenu(self.menu_catalogs)
 
 	def _equipment_append_to_table(self, in_id=None):
 		self._equipment.load(in_id)
@@ -115,14 +110,57 @@ class FormMain(CForm):
 		else:
 			self._current_equipment_item = None
 
-		self.equipment_enable_disable()
+		self.equipments_enable_disable()
+
+	def _select_equipments(self):
+		self.equipments_load()
+
+		self.menu_sections.setTitle(self.action_select_equipment.text())
+
+		self.setCentralWidget(self.panel_equipment)
+
+		self.menuBar().clear()
+		self.menuBar().addMenu(self.menu_sections)
+		self.menuBar().addMenu(self.menu_equipment)
+		self.menuBar().addMenu(self.menu_catalogs)
+		self.menuBar().addMenu(self.menu_service)
 
 	def equipment_add(self):
 		self.application.form_equipment.new_and_show()
 
+	def equipment_delete(self):
+		_dialog = QMessageBox()
+
+		self._equipment.load(self._current_equipment_item.id)
+
+		_result = _dialog.question(self,
+		                           "Удаление ОС и ТМЦ",
+		                           "Подтвердите удаление: {} {}".format(self._equipment.base.brand,
+		                                                                self._equipment.base.model),
+		                           QMessageBox.Yes | QMessageBox.No)
+
+		if _result == QMessageBox.Yes:
+			self._equipment.delete()
+
+			self.equipments_load()
+
 	def equipment_load(self):
 		if self._current_equipment_item is not None:
 			self.application.form_equipment.load(self._current_equipment_item.id)
+
+	def equipments_enable_disable(self):
+		self.action_equipment_delete.setEnabled(self._current_equipment_item is not None)
+
+		if self._current_equipment_item is None:
+			self.action_equipment_delete.setText("Удалить ОС и ТМЦ")
+		else:
+			_current_row = self._current_equipment_item.row()
+			_item_brand = self.model_equipment.item(_current_row, 2)
+			_item_model = self.model_equipment.item(_current_row, 3)
+			_brand = _item_brand.text()
+			_model = _item_model.text()
+
+			self.action_equipment_delete.setText("Удалить {} {}".format(_brand, _model))
 
 	def equipments_load(self):
 		self.model_equipment.clear()
@@ -146,32 +184,6 @@ class FormMain(CForm):
 	def open_catalog_fields(self):
 		self.application.form_catalog_fields.load_and_show()
 
-	def equipment_enable_disable(self):
-		self.action_equipment_delete.setEnabled(self._current_equipment_item is not None)
-
-		if self._current_equipment_item is None:
-			self.action_equipment_delete.setText("Удалить ОС и ТМЦ")
-		else:
-			_current_row = self._current_equipment_item.row()
-			_item_brand = self.model_equipment.item(_current_row, 2)
-			_item_model = self.model_equipment.item(_current_row, 3)
-			_brand = _item_brand.text()
-			_model = _item_model.text()
-
-			self.action_equipment_delete.setText("Удалить {} {}".format(_brand, _model))
-
-	def equipment_delete(self):
-		_dialog = QMessageBox()
-
-		self._equipment.load(self._current_equipment_item.id)
-
-		_result = _dialog.question(self,
-		                           "Удаление ОС и ТМЦ",
-		                           "Подтвердите удаление: {} {}".format(self._equipment.base.brand,
-		                                                                self._equipment.base.model),
-		                           QMessageBox.Yes | QMessageBox.No)
-
-		if _result == QMessageBox.Yes:
-			self._equipment.delete()
-
-			self.equipments_load()
+	def open_service_fields(self):
+		self.application.form_service_fields.replace_load()
+		self.application.form_service_fields.showCentered()

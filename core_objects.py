@@ -303,6 +303,8 @@ class CCatalogFieldGroup(CMetaObject):
 		return result
 
 	def load(self, in_id_or_name=None):
+		self.fields.clear()
+
 		if type(in_id_or_name) == int:
 			self.id = in_id_or_name
 		elif type(in_id_or_name) == str:
@@ -395,6 +397,89 @@ class CEquipments(CMeta):
 		      "  type='{}'".format(TABLE_META, EQUIPMENT)
 		return self.connection.get_list(sql)
 
+	def get_list_groups(self):
+		result = []
+
+		sql = "SELECT DISTINCT" \
+		      "  field " \
+		      "FROM {0} " \
+		      "LEFT JOIN" \
+		      "  {1} " \
+		      "ON" \
+		      "  {0}.ID_OBJ = {1}.id " \
+		      "WHERE " \
+		      "  {1}.type = '{2}' " \
+		      "ORDER BY " \
+		      "  field ASC".format(TABLE_FIELDS, TABLE_META, EQUIPMENT)
+		_list_fields = self.connection.get_list(sql)
+
+		for _field in _list_fields:
+			_group = extract_field_group(_field)
+
+			if (_group not in result) and (_group is not None):
+				result.append(_group)
+
+		return result
+
+	def get_list_fields(self, in_group):
+		result = []
+
+		sql = "SELECT DISTINCT" \
+		      "  field " \
+		      "FROM {0} " \
+		      "LEFT JOIN" \
+		      "  {1} " \
+		      "ON" \
+		      "  {0}.ID_OBJ = {1}.id " \
+		      "WHERE " \
+		      "  {1}.type = '{2}' " \
+		      "ORDER BY " \
+		      "  field ASC".format(TABLE_FIELDS, TABLE_META, EQUIPMENT)
+		_list_fields = self.connection.get_list(sql)
+
+		for _field in _list_fields:
+			_group = extract_field_group(_field)
+			_name  = extract_field_name(_field)
+
+			if _group == in_group:
+				if (_name not in result) and (_name is not None):
+					result.append(_name)
+
+		return result
+
+	def replace_field(self, old_field, new_field):
+		_commit = True
+
+		self.connection.transaction_start()
+
+		sql = "UPDATE {0} " \
+		      "SET" \
+		      "  field = '{1}_' " \
+		      "WHERE " \
+		      "  field = '{1}'".format(TABLE_FIELDS, new_field)
+		_commit = _commit and self.connection.exec_update(sql)
+
+		if _commit:
+			sql = "UPDATE {0} " \
+			      "SET" \
+			      "  field = '{2}' " \
+			      "WHERE " \
+			      "  field = '{1}'".format(TABLE_FIELDS, old_field, new_field)
+			_commit = _commit and self.connection.exec_update(sql)
+
+		if _commit:
+			sql = "DELETE " \
+			      "FROM {0} " \
+			      "WHERE " \
+			      "  field = '{1}_'".format(TABLE_FIELDS, new_field)
+			_commit = _commit and self.connection.exec_update(sql)
+
+		if _commit:
+			self.connection.transaction_commit()
+		else:
+			self.connection.transaction_rollback()
+
+		return _commit
 
 class CEquipment(CMetaObject):
 	type                   = EQUIPMENT
