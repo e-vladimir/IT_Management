@@ -3,7 +3,7 @@ from core_objects import *
 
 
 class FormMain(CForm):
-	model_equipment = QStandardItemModel
+	model_equipments = QStandardItemModel
 
 	_equipments = CEquipments
 	_equipment  = CEquipment
@@ -33,6 +33,8 @@ class FormMain(CForm):
 
 		self.panel_equipment.clicked.connect(self._equipment_get_current)
 		self.panel_equipment.doubleClicked.connect(self.equipment_load)
+		self.panel_equipment.expanded.connect(self.equipments_resize)
+		self.panel_equipment.collapsed.connect(self.equipments_resize)
 
 	def __init_icons__(self):
 		self.icon_small_equipment = QIcon(self.application.PATH_ICONS_SMALL + "equipments.png")
@@ -65,7 +67,7 @@ class FormMain(CForm):
 		self.menuBar().addMenu(self.menu_service)
 
 	def __init_objects__(self):
-		self.model_equipment = QStandardItemModel()
+		self.model_equipments = QStandardItemModel()
 
 		self._equipment  = CEquipment(self.application.sql_connection)
 		self._equipments = CEquipments(self.application.sql_connection)
@@ -78,15 +80,13 @@ class FormMain(CForm):
 
 	def _init_panel_equipment_(self):
 		self.panel_equipment = QTreeView()
-		self.panel_equipment.setModel(self.model_equipment)
-		self.panel_equipment.header().hide()
+		self.panel_equipment.setModel(self.model_equipments)
 		self.panel_equipment.setEditTriggers(QTreeView.NoEditTriggers)
+		self.panel_equipment.header().hide()
 
 	def _equipment_append_to_table(self, in_id=None):
 		self._equipment.load(in_id)
 
-		item_category        = QStandartItemWithID(self._equipment.base.category,       in_id)
-		item_subcategory     = QStandartItemWithID(self._equipment.base.subcategory,    in_id)
 		item_brand           = QStandartItemWithID(self._equipment.base.brand,          in_id)
 		item_model           = QStandartItemWithID(self._equipment.base.model,          in_id)
 		item_state           = QStandartItemWithID(self._equipment.base.state,          in_id)
@@ -100,21 +100,83 @@ class FormMain(CForm):
 
 		item_state.setFont(FONT_ITALIC)
 
-		self.model_equipment.appendRow([item_category, item_subcategory, item_brand, item_model, item_state, item_place_struct, item_place_placement, item_place_people, item_note])
+		list_items           = [item_state,
+		                        item_brand,
+		                        item_model,
+		                        item_place_struct,
+		                        item_place_placement,
+		                        item_place_people,
+		                        item_note]
+
+		item_category        = None
+		item_subcategory     = None
+
+		for _row in range(self.model_equipments.rowCount()):
+			_item = self.model_equipments.item(_row)
+
+			if _item.text() == self._equipment.base.category:
+				item_category = _item
+
+				break
+
+		if item_category is None:
+			item_category = QStandartItemWithID(self._equipment.base.category)
+			self.model_equipments.appendRow([item_category] + [QStandartItemWithID("") for index in range(len(list_items) - 1)])
+			item_category = self.model_equipments.item(self.model_equipments.rowCount() - 1)
+
+		for _row in range(item_category.rowCount()):
+			_item = item_category.child(_row)
+
+			if _item.text() == self._equipment.base.subcategory:
+				item_subcategory = _item
+
+				break
+
+		if item_subcategory is None:
+			item_subcategory = QStandartItemWithID(self._equipment.base.subcategory)
+			item_category.appendRow(item_subcategory)
+			item_subcategory = item_category.child(item_category.rowCount() - 1)
+
+		if (item_category is not None) and (item_subcategory is not None):
+			item_subcategory.appendRow(list_items)
 
 	def _equipment_get_current(self):
-		_current_index = self.panel_equipment.currentIndex()
-		_current_item  = self.model_equipment.itemFromIndex(_current_index)
+		if self._equipment_get_level() == 2:
+			_current_index = self.panel_equipment.currentIndex()
+			_current_item  = self.model_equipments.itemFromIndex(_current_index)
 
-		if _current_item is not None:
-			_current_row   = _current_item.row()
-			_current_item  = self.model_equipment.item(_current_row)
+			if _current_item is not None:
+				_current_row    = _current_item.row()
+				_current_parent = _current_item.parent()
 
-			self._current_equipment_item = _current_item
+				if _current_parent is not None:
+					_current_item = _current_parent.child(_current_row)
+				else:
+					_current_item = None
+
+				self._current_equipment_item = _current_item
+			else:
+				self._current_equipment_item = None
 		else:
 			self._current_equipment_item = None
 
 		self.equipments_enable_disable()
+
+	def _equipment_get_level(self):
+		_index = self.panel_equipment.currentIndex()
+		_item  = self.model_equipments.itemFromIndex(_index)
+		_level = 0
+
+		if _item is not None:
+			_parent = _item.parent()
+
+			while _parent is not None:
+				_item   = _parent
+				_parent = _item.parent()
+
+				_level += 1
+
+		return _level
 
 	def _select_equipments(self):
 		self.equipments_load()
@@ -159,28 +221,29 @@ class FormMain(CForm):
 			self.action_equipment_delete.setText("Удалить ОС и ТМЦ")
 		else:
 			_current_row = self._current_equipment_item.row()
-			_item_brand = self.model_equipment.item(_current_row, 2)
-			_item_model = self.model_equipment.item(_current_row, 3)
+			_item_brand = self.model_equipments.item(_current_row, 1)
+			_item_model = self.model_equipments.item(_current_row, 2)
 			_brand = _item_brand.text()
 			_model = _item_model.text()
 
 			self.action_equipment_delete.setText("Удалить {} {}".format(_brand, _model))
 
 	def equipments_load(self):
-		self.model_equipment.clear()
+		self.model_equipments.clear()
 
 		_list_id = self._equipments.get_list_id()
 
 		for _id in _list_id:
 			self._equipment_append_to_table(_id)
 
+		self.panel_equipment.sortByColumn(0, Qt.AscendingOrder)
 		self.equipments_resize()
 		self._equipment_get_current()
 
 	def equipments_resize(self):
 		self.panel_equipment.hide()
 
-		for index_col in range(self.model_equipment.columnCount()):
+		for index_col in range(self.model_equipments.columnCount()):
 			self.panel_equipment.resizeColumnToContents(index_col)
 
 		self.panel_equipment.show()

@@ -2,11 +2,6 @@ from core_gui     import *
 from core_objects import *
 
 
-class NoneModelItem(QStandartItemWithID):
-	def __init__(self):
-		super(NoneModelItem, self).__init__("", None)
-
-
 class FormEquipment(CForm):
 	_groups            = CCatalogFieldGroups
 	_group             = CCatalogFieldGroup
@@ -206,7 +201,9 @@ class FormEquipment(CForm):
 
 		self.field_note.setText(self._equipment.note)
 
-		self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory, self._equipment.base.brand, self._equipment.base.model))
+		self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory,
+		                                        self._equipment.base.brand,
+		                                        self._equipment.base.model) )
 
 		_list_fields = self._equipment.fields.get_list()
 

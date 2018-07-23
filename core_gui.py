@@ -96,6 +96,11 @@ class QStandartItemWithID(QStandardItem):
 		self.tag = in_tag
 
 
+class NoneModelItem(QStandartItemWithID):
+	def __init__(self):
+		super(NoneModelItem, self).__init__("", None)
+
+
 class QLabelR(QLabel):
 	def __init__(self, in_caption):
 		super(QLabelR, self).__init__(in_caption)
