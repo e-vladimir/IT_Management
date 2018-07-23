@@ -220,11 +220,12 @@ class FormMain(CForm):
 		if self._current_equipment_item is None:
 			self.action_equipment_delete.setText("Удалить ОС и ТМЦ")
 		else:
-			_current_row = self._current_equipment_item.row()
-			_item_brand = self.model_equipments.item(_current_row, 1)
-			_item_model = self.model_equipments.item(_current_row, 2)
-			_brand = _item_brand.text()
-			_model = _item_model.text()
+			_parent     = self._current_equipment_item.parent()
+			_row        = self._current_equipment_item.row()
+			_item_brand = _parent.child(_row, 1)
+			_item_model = _parent.child(_row, 2)
+			_brand      = _item_brand.text()
+			_model      = _item_model.text()
 
 			self.action_equipment_delete.setText("Удалить {} {}".format(_brand, _model))
 
@@ -237,6 +238,13 @@ class FormMain(CForm):
 			self._equipment_append_to_table(_id)
 
 		self.panel_equipment.sortByColumn(0, Qt.AscendingOrder)
+
+		for _row in range(self.model_equipments.rowCount()):
+			_item  = self.model_equipments.item(_row)
+			_index = self.model_equipments.indexFromItem(_item)
+
+			self.panel_equipment.setExpanded(_index, True)
+
 		self.equipments_resize()
 		self._equipment_get_current()
 
