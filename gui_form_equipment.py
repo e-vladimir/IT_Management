@@ -39,6 +39,7 @@ class FormEquipment(CForm):
 		self.list_values.doubleClicked.connect(self.select_value)
 
 		self.action_save.triggered.connect(self.save)
+		self.action_save_as_copy.triggered.connect(self.save_copy)
 		self.action_save_and_close.triggered.connect(self.save_and_close)
 
 		self.action_delete.triggered.connect(self.delete)
@@ -203,7 +204,7 @@ class FormEquipment(CForm):
 
 		self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory,
 		                                        self._equipment.base.brand,
-		                                        self._equipment.base.model) )
+		                                        self._equipment.base.model))
 
 		_list_fields = self._equipment.fields.get_list()
 
@@ -239,6 +240,10 @@ class FormEquipment(CForm):
 		self._equipment.save()
 
 		self.application.form_main.equipments_load()
+
+	def save_copy(self):
+		self._equipment.id = None
+		self.save()
 
 	def _get_current_main(self):
 		self.current_main_group = None

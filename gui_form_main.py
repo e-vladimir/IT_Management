@@ -98,7 +98,7 @@ class FormMain(CForm):
 		item_brand.setFont(FONT_BOLD)
 		item_model.setFont(FONT_BOLD)
 
-		item_state.setFont(FONT_ITALIC)
+		item_note.setFont(FONT_ITALIC)
 
 		list_items           = [item_state,
 		                        item_brand,
@@ -121,8 +121,8 @@ class FormMain(CForm):
 
 		if item_category is None:
 			item_category = QStandartItemWithID(self._equipment.base.category)
+			item_category.setBackground(QColor.fromRgb(230, 230, 230))
 			self.model_equipments.appendRow([item_category] + [QStandartItemWithID("") for index in range(len(list_items) - 1)])
-			item_category = self.model_equipments.item(self.model_equipments.rowCount() - 1)
 
 		for _row in range(item_category.rowCount()):
 			_item = item_category.child(_row)
@@ -134,8 +134,8 @@ class FormMain(CForm):
 
 		if item_subcategory is None:
 			item_subcategory = QStandartItemWithID(self._equipment.base.subcategory)
+			item_subcategory.setBackground(QColor.fromRgb(240, 240, 240))
 			item_category.appendRow(item_subcategory)
-			item_subcategory = item_category.child(item_category.rowCount() - 1)
 
 		if (item_category is not None) and (item_subcategory is not None):
 			item_subcategory.appendRow(list_items)
@@ -161,6 +161,13 @@ class FormMain(CForm):
 			self._current_equipment_item = None
 
 		self.equipments_enable_disable()
+		self._equipments_expand()
+
+	def _equipments_expand(self):
+		_index = self.panel_equipment.currentIndex()
+
+		if _index is not None:
+			self.panel_equipment.setExpanded(_index, True)
 
 	def _equipment_get_level(self):
 		_index = self.panel_equipment.currentIndex()
