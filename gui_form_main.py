@@ -85,6 +85,9 @@ class FormMain(CForm):
 		self.panel_equipment.header().hide()
 
 	def _equipment_append_to_table(self, in_id=None):
+		_color_group    = QColor.fromRgb(230, 230, 230)
+		_color_subgroup = QColor.fromRgb(240, 240, 240)
+
 		self._equipment.load(in_id)
 
 		item_brand           = QStandartItemWithID(self._equipment.base.brand,          in_id)
@@ -121,8 +124,8 @@ class FormMain(CForm):
 
 		if item_category is None:
 			item_category = QStandartItemWithID(self._equipment.base.category)
-			item_category.setBackground(QColor.fromRgb(230, 230, 230))
-			self.model_equipments.appendRow([item_category] + [QStandartItemWithID("") for index in range(len(list_items) - 1)])
+			item_category.setBackground(_color_group)
+			self.model_equipments.appendRow([item_category] + [QNoneModelItem(_color_group) for index in range(len(list_items) - 1)])
 
 		for _row in range(item_category.rowCount()):
 			_item = item_category.child(_row)
@@ -134,8 +137,8 @@ class FormMain(CForm):
 
 		if item_subcategory is None:
 			item_subcategory = QStandartItemWithID(self._equipment.base.subcategory)
-			item_subcategory.setBackground(QColor.fromRgb(240, 240, 240))
-			item_category.appendRow(item_subcategory)
+			item_subcategory.setBackground(_color_subgroup)
+			item_category.appendRow([item_subcategory]  + [QNoneModelItem(_color_subgroup) for index in range(len(list_items) - 1)])
 
 		if (item_category is not None) and (item_subcategory is not None):
 			item_subcategory.appendRow(list_items)

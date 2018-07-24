@@ -173,7 +173,7 @@ class FormEquipment(CForm):
 			_item_group = QStandartItemWithID(_group)
 			_item_group.setCheckable(True)
 			_item_group.appendRow([QStandartItemWithID(_field), _item_value])
-			self.model_fields.appendRow([_item_group, NoneModelItem()])
+			self.model_fields.appendRow([_item_group, QNoneModelItem()])
 
 	def load_fields(self):
 		list_groups = self._groups.get_list()
@@ -188,7 +188,7 @@ class FormEquipment(CForm):
 			for field in list_fields:
 				item_group.appendRow([QStandartItemWithID(field), QStandartItemWithID("")])
 
-			self.model_fields.appendRow([item_group, NoneModelItem()])
+			self.model_fields.appendRow([item_group, QNoneModelItem()])
 
 	def load(self, in_id=None):
 		self.model_fields.clear()
@@ -313,7 +313,7 @@ class FormEquipment(CForm):
 		_text, _result = _dialog.getText(self, "Новая характеристика", "Категория: {}".format(self.current_main_group.text()))
 
 		if _result:
-			self.current_main_group.appendRow([QStandartItemWithID(_text), NoneModelItem()])
+			self.current_main_group.appendRow([QStandartItemWithID(_text), QNoneModelItem()])
 
 	def field_up(self):
 		current_row = self.current_main_field.row()

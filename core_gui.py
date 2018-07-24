@@ -96,9 +96,12 @@ class QStandartItemWithID(QStandardItem):
 		self.tag = in_tag
 
 
-class NoneModelItem(QStandartItemWithID):
-	def __init__(self):
-		super(NoneModelItem, self).__init__("", None)
+class QNoneModelItem(QStandartItemWithID):
+	def __init__(self, in_color=None):
+		super(QNoneModelItem, self).__init__("", None)
+
+		if in_color is not None:
+			self.setBackground(in_color)
 
 
 class QLabelR(QLabel):
