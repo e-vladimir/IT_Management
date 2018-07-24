@@ -307,6 +307,8 @@ class FormEquipment(CForm):
 
 		self.current_main_group.removeRow(_row)
 
+		self._get_current_main()
+
 	def field_add(self):
 		_dialog = QInputDialog()
 
