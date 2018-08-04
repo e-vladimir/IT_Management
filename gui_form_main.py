@@ -31,7 +31,7 @@ class FormMain(CForm):
 		self.action_service_replace_fields.triggered.connect(self.open_service_replace_fields)
 		self.action_service_set_value.triggered.connect(self.open_service_set_value)
 
-		self.panel_equipment.clicked.connect(self._equipment_get_current)
+		self.panel_equipment.clicked.connect(self._equipments_get_current)
 		self.panel_equipment.doubleClicked.connect(self.equipment_load)
 		self.panel_equipment.expanded.connect(self.equipments_resize)
 		self.panel_equipment.collapsed.connect(self.equipments_resize)
@@ -98,10 +98,16 @@ class FormMain(CForm):
 		item_place_people    = QStandartItemWithID(self._equipment.placement.people,    in_id)
 		item_note            = QStandartItemWithID(self._equipment.note,                in_id)
 
+		item_acc_number      = QStandartItemWithID(self._equipment.accounting.number,   in_id)
+		item_acc_people      = QStandartItemWithID(self._equipment.accounting.people,   in_id)
+
 		item_brand.setFont(FONT_BOLD)
 		item_model.setFont(FONT_BOLD)
 
 		item_note.setFont(FONT_ITALIC)
+
+		item_acc_number.setForeground(Qt.darkBlue)
+		item_acc_people.setForeground(Qt.darkBlue)
 
 		list_items           = [item_state,
 		                        item_brand,
@@ -109,7 +115,9 @@ class FormMain(CForm):
 		                        item_place_struct,
 		                        item_place_placement,
 		                        item_place_people,
-		                        item_note]
+		                        item_note,
+		                        item_acc_number,
+		                        item_acc_people]
 
 		item_category        = None
 		item_subcategory     = None
@@ -143,7 +151,7 @@ class FormMain(CForm):
 		if (item_category is not None) and (item_subcategory is not None):
 			item_subcategory.appendRow(list_items)
 
-	def _equipment_get_current(self):
+	def _equipments_get_current(self):
 		if self._equipment_get_level() == 2:
 			_current_index = self.panel_equipment.currentIndex()
 			_current_item  = self.model_equipments.itemFromIndex(_current_index)
@@ -240,6 +248,13 @@ class FormMain(CForm):
 			self.action_equipment_delete.setText("Удалить {} {}".format(_brand, _model))
 
 	def equipments_load(self):
+		self._equipments_get_current()
+
+		if self._current_equipment_item is not None:
+			_current_item_id = self._current_equipment_item.id
+		else:
+			_current_item_id = None
+
 		self.model_equipments.clear()
 
 		_list_id = self._equipments.get_list_id()
@@ -255,8 +270,13 @@ class FormMain(CForm):
 
 			self.panel_equipment.setExpanded(_index, True)
 
+		self.equipments_jump_to_id(_current_item_id)
+
 		self.equipments_resize()
-		self._equipment_get_current()
+		self._equipments_get_current()
+
+	def equipments_jump_to_id(self, in_id=None):
+		pass
 
 	def equipments_resize(self):
 		self.panel_equipment.hide()

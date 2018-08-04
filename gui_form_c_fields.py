@@ -207,7 +207,6 @@ class FormCatalogFields(CForm):
 		item_group.appendRow(QStandartItemWithID("Инвентарный номер",    None))
 		item_group.appendRow(QStandartItemWithID("Числится",             None))
 		item_group.appendRow(QStandartItemWithID("Сотрудник",            None))
-		item_group.appendRow(QStandartItemWithID("Дата поступления",     None))
 		self.model_fields.appendRow(item_group)
 
 	def load(self):

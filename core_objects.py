@@ -388,6 +388,24 @@ class GroupPlacement(GroupMeta):
 		self.struct    = self._meta.get(FIELDS_GROUP_PLACEMENT, "Структура")
 
 
+class GroupAccounting(GroupMeta):
+	include = ""
+	number  = ""
+	people  = ""
+
+	def clear(self):
+		self.include = ""
+		self.number  = ""
+		self.people  = ""
+
+	def load(self):
+		super(GroupAccounting, self).load()
+
+		self.include = self._meta.get(FIELDS_GROUP_ACCOUNTING, "Числится")
+		self.number  = self._meta.get(FIELDS_GROUP_ACCOUNTING, "Инвентарный номер")
+		self.people  = self._meta.get(FIELDS_GROUP_ACCOUNTING, "Сотрудник")
+
+
 # ОС и ТМЦ
 class CEquipments(CMeta):
 	def get_list_id(self):
@@ -502,6 +520,7 @@ class CEquipment(CMetaObject):
 
 	base                   = GroupBase
 	placement              = GroupPlacement
+	accounting             = GroupAccounting
 
 	_field_groups          = CCatalogFieldGroups
 	_field_group           = CCatalogFieldGroup
@@ -512,12 +531,14 @@ class CEquipment(CMetaObject):
 
 		self.base          = GroupBase(self)
 		self.placement     = GroupPlacement(self)
+		self.accounting    = GroupAccounting(self)
 
 	def load(self, in_id=None):
 		super(CEquipment, self).load(in_id)
 
 		self.base.load()
 		self.placement.load()
+		self.accounting.load()
 
 	def get_values_by_field(self, in_group="", in_field=""):
 		sql = "SELECT DISTINCT " \
