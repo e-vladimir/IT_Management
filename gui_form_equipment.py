@@ -240,6 +240,7 @@ class FormEquipment(CForm):
 		self._equipment.save()
 
 		self.application.form_main.equipments_load()
+		self.application.form_main.equipments_jump_to_id(self._equipment.id)
 
 	def save_copy(self):
 		self._equipment.id = None

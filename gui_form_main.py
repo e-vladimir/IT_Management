@@ -204,8 +204,6 @@ class FormMain(CForm):
 		return _level
 
 	def _select_equipments(self):
-		self.equipments_load()
-
 		self.menu_sections.setTitle(self.action_select_equipment.text())
 
 		self.setCentralWidget(self.panel_equipment)
@@ -215,6 +213,8 @@ class FormMain(CForm):
 		self.menuBar().addMenu(self.menu_equipment)
 		self.menuBar().addMenu(self.menu_catalogs)
 		self.menuBar().addMenu(self.menu_service)
+
+		self.equipments_load()
 
 	def equipment_add(self):
 		self.application.form_equipment.new_and_show()
@@ -283,7 +283,27 @@ class FormMain(CForm):
 		self._equipments_get_current()
 
 	def equipments_jump_to_id(self, in_id=None):
-		pass
+		for _group_index in range(self.model_equipments.rowCount()):
+			_group = self.model_equipments.item(_group_index)
+
+			for _subgroup_index in range(_group.rowCount()):
+				_subgroup = _group.child(_subgroup_index)
+
+				for _item_index in range(_subgroup.rowCount()):
+					_item = _subgroup.child(_item_index)
+					_id   = _item.id
+
+					if (in_id == _id):
+						_index_subgroup = self.model_equipments.indexFromItem(_subgroup)
+						_index_group    = self.model_equipments.indexFromItem(_group)
+						_index_item     = self.model_equipments.indexFromItem(_item)
+
+						self.panel_equipment.setExpanded(_index_group, True)
+						self.panel_equipment.setExpanded(_index_subgroup, True)
+
+						self.panel_equipment.setCurrentIndex(_index_item)
+
+						break
 
 	def equipments_resize(self):
 		self.panel_equipment.hide()
