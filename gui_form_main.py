@@ -11,20 +11,23 @@ class FormMain(CForm):
 	_current_equipment_item = None
 
 	def __init_actions__(self):
-		self.action_select_equipment       = QAction(self.icon_small_equipment, "Учёт ОС и ТМЦ",           None)
-		self.action_catalogs_fields        = QAction(self.icon_small_equipment, "Характеристики",          None)
+		self.action_select_equipment       = QAction(self.icon_small_equipment, "Учёт ОС и ТМЦ",        None)
+		self.action_catalogs_fields        = QAction(self.icon_small_equipment, "Характеристики",       None)
 
-		self.action_equipment_add          = QAction(self.icon_small_add,       "Добавить ОС или ТМЦ",     None)
-		self.action_equipment_delete       = QAction(self.icon_small_delete,    "Удалить <ОС или ТМЦ>",    None)
+		self.action_equipment_add          = QAction(self.icon_small_add,       "Добавить ОС или ТМЦ",  None)
+		self.action_equipment_delete       = QAction(self.icon_small_delete,    "Удалить <ОС или ТМЦ>", None)
 
-		self.action_service_replace_fields = QAction(self.icon_small_fields,    "Замена названия", None)
-		self.action_service_set_value      = QAction(self.icon_small_search,    "Запись значения", None)
+		self.action_equipment_refresh      = QAction(self.icon_small_refresh,   "Обновить список",      None)
+
+		self.action_service_replace_fields = QAction(self.icon_small_fields,    "Замена названия",      None)
+		self.action_service_set_value      = QAction(self.icon_small_search,    "Запись значения",      None)
 
 	def __init_events__(self):
 		self.action_select_equipment.triggered.connect(self._select_equipments)
 
 		self.action_equipment_add.triggered.connect(self.equipment_add)
 		self.action_equipment_delete.triggered.connect(self.equipment_delete)
+		self.action_equipment_refresh.triggered.connect(self.equipments_load)
 
 		self.action_catalogs_fields.triggered.connect(self.open_catalog_fields)
 
@@ -45,6 +48,8 @@ class FormMain(CForm):
 		self.icon_small_add       = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
 		self.icon_small_delete    = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
 
+		self.icon_small_refresh   = QIcon(self.application.PATH_ICONS_SMALL + "arrow_refresh_small.png")
+
 	def __init_menu__(self):
 		self.menu_sections  = QMenu("Раздел")
 		self.menu_sections.addAction(self.action_select_equipment)
@@ -57,6 +62,8 @@ class FormMain(CForm):
 		self.menu_equipment.addAction(self.action_equipment_add)
 		self.menu_equipment.addSeparator()
 		self.menu_equipment.addAction(self.action_equipment_delete)
+		self.menu_equipment.addSeparator()
+		self.menu_equipment.addAction(self.action_equipment_refresh)
 
 		self.menu_service   = QMenu("Сервис")
 		self.menu_service.addAction(self.action_service_replace_fields)
