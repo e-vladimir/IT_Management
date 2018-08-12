@@ -29,9 +29,15 @@ class TSQLiteConnection(object):
 			self.query_select = QtSql.QSqlQuery(self.SQL_connection)
 			self.query_insert = QtSql.QSqlQuery(self.SQL_connection)
 			self.query_delete = QtSql.QSqlQuery(self.SQL_connection)
-			self.query_temp = QtSql.QSqlQuery(self.SQL_connection)
+			self.query_temp   = QtSql.QSqlQuery(self.SQL_connection)
 		else:
 			self.error = self.SQL_connection.lastError()
+
+	def close(self):
+		self.SQL_connection.close()
+
+	def open(self):
+		self.SQL_connection.open()
 
 	def exec_sql(self, in_sql_text, in_query=query_temp):
 		if in_query.exec_(in_sql_text):

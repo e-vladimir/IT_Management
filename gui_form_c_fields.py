@@ -87,9 +87,7 @@ class FormCatalogFields(CForm):
 		self.menuBar().addMenu(menu_fields)
 		self.menuBar().addMenu(menu_service)
 
-	def __init_ui__(self):
-		super(FormCatalogFields, self).__init_ui__()
-
+	def __ui__(self):
 		self.setWindowTitle("Каталог характеристик")
 		self.setMinimumSize(480, 640)
 

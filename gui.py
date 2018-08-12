@@ -26,11 +26,11 @@ class AppManage(CApplication):
 		self.init_forms()
 
 	def init_forms(self):
-		self.form_main           = FormMain(self)
 		self.form_catalog_fields = FormCatalogFields(self)
 		self.form_service_fields = FormServiceFields(self)
 		self.form_equipment      = FormEquipment(self)
 		self.form_backups        = FormBackups(self)
+		self.form_main           = FormMain(self)
 
 	def init_sql(self):
 		self.sql_connection = TSQLiteConnection('{0}/{1}'.format(self.PATH_COMMON, "db.sqlite"))

@@ -38,6 +38,7 @@ class FormMain(CForm):
 		self.action_service_set_value.triggered.connect(self.open_service_set_value)
 
 		self.action_backup_manager.triggered.connect(self.open_backups)
+		self.action_backup_save.triggered.connect(self.application.form_backups.exec_backup)
 
 		self.panel_equipment.clicked.connect(self._equipments_get_current)
 		self.panel_equipment.doubleClicked.connect(self.equipment_load)

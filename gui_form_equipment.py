@@ -96,9 +96,7 @@ class FormEquipment(CForm):
 		self.menuBar().addMenu(menu_actions)
 		self.menuBar().addMenu(menu_fields)
 
-	def __init_ui__(self):
-		super(FormEquipment, self).__init_ui__()
-		
+	def __ui__(self):
 		self.setWindowTitle("ОС и ТМЦ")
 		self.setMinimumSize(640, 480)
 
