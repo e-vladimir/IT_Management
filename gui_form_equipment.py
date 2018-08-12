@@ -202,9 +202,7 @@ class FormEquipment(CForm):
 
 		self.field_note.setText(self._equipment.note)
 
-		self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory,
-		                                        self._equipment.base.brand,
-		                                        self._equipment.base.model))
+		self.load_title()
 
 		_list_fields = self._equipment.fields.get_list()
 
@@ -217,6 +215,11 @@ class FormEquipment(CForm):
 
 		self.showCentered()
 		self._get_current_main()
+
+	def load_title(self):
+		self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory,
+		                                        self._equipment.base.brand,
+		                                        self._equipment.base.model))
 
 	def save(self):
 		self._equipment.clear()
@@ -238,6 +241,9 @@ class FormEquipment(CForm):
 		self._equipment.note = self.field_note.text()
 
 		self._equipment.save()
+
+		self._equipment.load()
+		self.load_title()
 
 		self.application.form_main.equipments_load()
 		self.application.form_main.equipments_jump_to_id(self._equipment.id)

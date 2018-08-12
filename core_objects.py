@@ -470,7 +470,13 @@ class CEquipments(CMeta):
 		      "FROM {} " \
 		      "WHERE " \
 		      "  field='{}'".format(TABLE_FIELDS, in_field)
-		return self.connection.get_list(sql)
+
+		_fields = self.connection.get_list(sql)
+		_fields = list(set(_fields))
+
+		_fields.sort()
+
+		return _fields
 
 	def replace_field(self, old_field, new_field):
 		_commit = True

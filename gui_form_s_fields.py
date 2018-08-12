@@ -115,8 +115,8 @@ class FormServiceFields(CForm):
 		_result     = _dialog.question(self,
 		                               "Запись значения",
 		                               "Подтвердите запись  \n{} в \n{}".format(_value,
-		                                                                          _field),
-		                               QMessageBox.Yes | QMessageBox.No)
+		                                                                        _field),
+		                               QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes
 
 		if _result:
 			_result = self._equipments.set_value(_field, _value)

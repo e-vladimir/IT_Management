@@ -22,6 +22,9 @@ class FormMain(CForm):
 		self.action_service_replace_fields = QAction(self.icon_small_fields,    "Замена названия",      None)
 		self.action_service_set_value      = QAction(self.icon_small_search,    "Запись значения",      None)
 
+		self.action_backup_manager         = QAction(self.icon_small_backups,   "Управление резервными копиями",      None)
+		self.action_backup_save            = QAction(self.icon_small_backup_save, "Сделать резервную копию",      None)
+
 	def __init_events__(self):
 		self.action_select_equipment.triggered.connect(self._select_equipments)
 
@@ -50,6 +53,9 @@ class FormMain(CForm):
 
 		self.icon_small_refresh   = QIcon(self.application.PATH_ICONS_SMALL + "arrow_refresh_small.png")
 
+		self.icon_small_backups     = QIcon(self.application.PATH_ICONS_SMALL + "database_cleanup.png")
+		self.icon_small_backup_save = QIcon(self.application.PATH_ICONS_SMALL + "database_save.png")
+
 	def __init_menu__(self):
 		self.menu_sections  = QMenu("Раздел")
 		self.menu_sections.addAction(self.action_select_equipment)
@@ -68,6 +74,9 @@ class FormMain(CForm):
 		self.menu_service   = QMenu("Сервис")
 		self.menu_service.addAction(self.action_service_replace_fields)
 		self.menu_service.addAction(self.action_service_set_value)
+		self.menu_service.addSeparator()
+		self.menu_service.addAction(self.action_backup_manager)
+		self.menu_service.addAction(self.action_backup_save)
 
 		self.menuBar().addMenu(self.menu_sections)
 		self.menuBar().addMenu(self.menu_catalogs)
@@ -293,7 +302,7 @@ class FormMain(CForm):
 					_item = _subgroup.child(_item_index)
 					_id   = _item.id
 
-					if (in_id == _id):
+					if in_id == _id:
 						_index_subgroup = self.model_equipments.indexFromItem(_subgroup)
 						_index_group    = self.model_equipments.indexFromItem(_group)
 						_index_item     = self.model_equipments.indexFromItem(_item)
