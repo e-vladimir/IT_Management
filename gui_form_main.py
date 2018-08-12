@@ -37,6 +37,8 @@ class FormMain(CForm):
 		self.action_service_replace_fields.triggered.connect(self.open_service_replace_fields)
 		self.action_service_set_value.triggered.connect(self.open_service_set_value)
 
+		self.action_backup_manager.triggered.connect(self.open_backups)
+
 		self.panel_equipment.clicked.connect(self._equipments_get_current)
 		self.panel_equipment.doubleClicked.connect(self.equipment_load)
 		self.panel_equipment.expanded.connect(self.equipments_resize)
@@ -331,3 +333,5 @@ class FormMain(CForm):
 	def open_service_set_value(self):
 		self.application.form_service_fields.open_set_value()
 
+	def open_backups(self):
+		self.application.form_backups.showCentered()

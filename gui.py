@@ -5,6 +5,7 @@ from gui_form_main      import FormMain
 from gui_form_c_fields  import FormCatalogFields
 from gui_form_equipment import FormEquipment
 from gui_form_s_fields  import FormServiceFields
+from gui_form_backup    import FormBackups
 
 
 class AppManage(CApplication):
@@ -13,6 +14,8 @@ class AppManage(CApplication):
 	form_main           = FormMain
 	form_catalog_fields = FormCatalogFields
 	form_equipment      = FormEquipment
+	form_service_fields = FormServiceFields
+	form_backups        = FormBackups
 
 	version = "180206/1321"
 
@@ -27,6 +30,7 @@ class AppManage(CApplication):
 		self.form_catalog_fields = FormCatalogFields(self)
 		self.form_service_fields = FormServiceFields(self)
 		self.form_equipment      = FormEquipment(self)
+		self.form_backups        = FormBackups(self)
 
 	def init_sql(self):
 		self.sql_connection = TSQLiteConnection('{0}/{1}'.format(self.PATH_COMMON, "db.sqlite"))
