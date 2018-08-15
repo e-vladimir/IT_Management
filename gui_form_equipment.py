@@ -161,7 +161,7 @@ class FormEquipment(CForm):
 						break
 				else:
 					_item_group.setCheckState(Qt.Checked)
-					_item_group.appendRow([QStandartItemWithID(_field), QStandartItemWithID("")])
+					_item_group.appendRow([QStandartItemWithID(_field), _item_value])
 
 				if _item_group.checkState() == Qt.Checked:
 					self.tree_fields.setExpanded(self.model_fields.indexFromItem(_item_group), True)
