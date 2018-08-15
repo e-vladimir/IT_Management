@@ -520,6 +520,16 @@ class CEquipments(CMeta):
 		      "  field='{}'".format(TABLE_FIELDS, in_value, in_field)
 		return self.connection.exec_update(sql)
 
+	def replace_value(self, in_field, in_value_from, in_value_to):
+		sql = "UPDATE {} " \
+		      "SET " \
+		      "  value='{}' " \
+		      "WHERE " \
+		      "  field='{}' " \
+		      "AND " \
+		      "  value='{}'".format(TABLE_FIELDS, in_value_to, in_field, in_value_from)
+		return self.connection.exec_update(sql)
+
 
 class CEquipment(CMetaObject):
 	type                   = EQUIPMENT

@@ -89,7 +89,7 @@ class FormServiceFields(CForm):
 			else:
 				self.show_message("SQL Ошибка: {} -> {}".format(_from, _to), 10000)
 
-	def _exec_set_value(self):
+	def _exec_replace_value(self):
 		_from_group = ""
 		_from_field = ""
 
@@ -109,22 +109,30 @@ class FormServiceFields(CForm):
 			_field += "/"
 			_field += _from_field
 
-		_value   = self.le_r_value_to_value.text()
+		_row        = self.list_r_value_values.currentRow()
+
+		if _row > -1:
+			_value_from = self.list_r_value_values.item(_row).text()
+		else:
+			_value_from = ""
+
+		_value_to   = self.le_r_value_to_value.text()
 
 		_dialog     = QMessageBox()
 		_result     = _dialog.question(self,
 		                               "Запись значения",
-		                               "Подтвердите запись  \n{} в \n{}".format(_value,
-		                                                                        _field),
+		                               "Подтвердите замену \n{}.{} на \n{}".format(_field,
+		                                                                           _value_from,
+		                                                                           _value_to),
 		                               QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes
 
 		if _result:
-			_result = self._equipments.set_value(_field, _value)
+			_result = self._equipments.replace_value(_field, _value_from, _value_to)
 
 			if _result:
-				self.show_message("Выполнено: {} -> {}".format(_value, _field))
+				self.show_message("Выполнено: {} -> {}".format(_value_to, _field), 10000)
 			else:
-				self.show_message("SQL Ошибка: {} -> {}".format(_value, _field), 10000)
+				self.show_message("SQL Ошибка: {} -> {}".format(_value_to, _field), 10000)
 
 	def _init_tab_replace_field_(self):
 		self.tree_r_field_from = QTreeWidget()
@@ -172,7 +180,7 @@ class FormServiceFields(CForm):
 		panel_r_value = QWidget()
 		panel_r_value.setLayout(layout_r_value)
 
-		self.tabs.addTab(panel_r_value, self.icon_small_search, "Запись значения")
+		self.tabs.addTab(panel_r_value, self.icon_small_search, "Замена значения")
 
 	def exec(self):
 		_tab_index = self.tabs.currentIndex()
@@ -180,7 +188,7 @@ class FormServiceFields(CForm):
 		if   _tab_index == 0:
 			self._exec_replace_field()
 		elif _tab_index == 1:
-			self._exec_set_value()
+			self._exec_replace_value()
 
 	def load_replace_field(self):
 		_list_groups = self._equipments.get_list_groups()
