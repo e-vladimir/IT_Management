@@ -33,7 +33,7 @@ class AppManage(CApplication):
 		self.form_main           = FormMain(self)
 
 	def init_sql(self):
-		self.sql_connection = TSQLiteConnection('{0}/{1}'.format(self.PATH_COMMON, "db.sqlite"))
+		self.sql_connection = TSQLiteConnection('{0}{1}'.format(self.PATH_COMMON, "db.sqlite"), "DB_Main")
 
 
 app = AppManage()

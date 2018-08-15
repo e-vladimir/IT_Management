@@ -295,7 +295,10 @@ class FormEquipment(CForm):
 			_group = self.current_main_group.text()
 			_field = self.current_main_field.text()
 
-			self.list_values.addItems(self._equipment.get_values_by_field(_group, _field))
+			_values = self._equipment.get_values_by_field(_group, _field)
+
+			if _values is not None:
+				self.list_values.addItems(_values)
 
 	def select_value(self):
 		_item  = self.list_values.currentItem()

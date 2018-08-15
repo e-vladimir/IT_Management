@@ -11,6 +11,8 @@ class TSQLiteConnection(object):
 
 	error           = ""
 
+	SQL_connection  = QtSql.QSqlDatabase
+
 	query_create    = None
 	query_select    = None
 	query_insert    = None
