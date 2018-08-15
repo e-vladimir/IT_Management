@@ -24,7 +24,7 @@ class FormBackups(CForm):
 		self.action_backup_delete  = QAction(self.icon_small_backup_delete, "Удалить резервную копию", None)
 		self.action_backup_restore = QAction(self.icon_small_backups,       "Восстановить из резервной копии", None)
 
-		self.action_close          = QAction(self.icon_small_close,  "Закрыть",                 None)
+		self.action_close          = QAction(self.icon_small_close,         "Закрыть",                 None)
 
 	def __init_menu__(self):
 		menu_actions = QMenu("Действия")
@@ -41,6 +41,7 @@ class FormBackups(CForm):
 		self.action_close.triggered.connect(self.close)
 		self.action_backup_save.triggered.connect(self.backup_save)
 		self.action_backup_restore.triggered.connect(self.backup_restore)
+		self.action_backup_delete.triggered.connect(self.backup_delete)
 
 	def __ui__(self):
 		self.__init_dirs()
@@ -151,8 +152,6 @@ class FormBackups(CForm):
 				_dialog.setWindowTitle("Резервное копирование")
 
 				try:
-					# self.application.sql_connection.close()
-
 					copyfile(_from, _to)
 
 					_dialog.information(self, "Резервное копирование", "База восстановлена на {} {}".format(_date, _time))
@@ -163,4 +162,20 @@ class FormBackups(CForm):
 
 					_dialog.exec_()
 
-				# self.application.init_sql()
+	def backup_delete(self):
+		_row     = self.table_backups.currentRow()
+		_date    = self.table_backups.item(_row, 0).text()
+		_time    = self.table_backups.item(_row, 1).text()
+		_objects = self.table_backups.item(_row, 2).text()
+
+		_dialog  = QMessageBox()
+		_result  = _dialog.question(self,
+		                            "Удаление копии",
+		                            "Подтвердите удаление резервной копии\nДата\время: {} {}. Объектов: {}".format(_date, _time, _objects),
+		                            QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes
+
+		if _result:
+			os.remove("{}{} {}.sqlite".format(self.path_backups,
+			                                  _date,
+			                                  _time))
+			self.backups_load()
