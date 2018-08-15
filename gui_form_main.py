@@ -303,6 +303,10 @@ class FormMain(CForm):
 
 				for _item_index in range(_subgroup.rowCount()):
 					_item = _subgroup.child(_item_index)
+
+					if type(_item) is QListWidgetItem:
+						print(_item.text())
+
 					_id   = _item.id
 
 					if in_id == _id:

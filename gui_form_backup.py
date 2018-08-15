@@ -86,6 +86,7 @@ class FormBackups(CForm):
 		self.table_backups.setColumnCount(3)
 
 		_files = os.listdir(self.path_backups)
+		_files.sort()
 
 		for _file in _files:
 			if _file.endswith('.sqlite'):
