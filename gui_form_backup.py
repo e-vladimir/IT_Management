@@ -43,6 +43,8 @@ class FormBackups(CForm):
 		self.action_backup_restore.triggered.connect(self.backup_restore)
 		self.action_backup_delete.triggered.connect(self.backup_delete)
 
+		self.table_backups.clicked.connect(self.gui_enable_disable)
+
 	def __ui__(self):
 		self.__init_dirs()
 
@@ -77,6 +79,12 @@ class FormBackups(CForm):
 			_dialog.setDetailedText(str(error))
 
 			_dialog.exec_()
+
+	def gui_enable_disable(self):
+		select_backup = self.table_backups.currentRow() > -1
+
+		self.action_backup_restore.setEnabled(select_backup)
+		self.action_backup_delete.setEnabled(select_backup)
 
 	def backup_save(self):
 		self.backup_exec()
@@ -121,6 +129,8 @@ class FormBackups(CForm):
 			self.table_backups.setHorizontalHeaderLabels(["Дата копии", "Время копии", "Количество объектов"])
 			self.table_backups.resizeRowsToContents()
 			self.table_backups.resizeColumnsToContents()
+
+		self.gui_enable_disable()
 
 	def load_and_show(self):
 		self.backups_load()
