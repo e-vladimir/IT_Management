@@ -600,12 +600,12 @@ class CTransactions(CMeta):
 
 
 class CTransaction(CMeta):
-	id       = None
-	id_obj   = None
-	date     = ""
-	type     = ""
-	value    = ""
-	note     = ""
+	id          = None
+	id_obj      = None
+	date        = ""
+	type        = ""
+	description = ""
+	note        = ""
 
 	def save(self):
 		if self.id is None:
@@ -613,7 +613,7 @@ class CTransaction(CMeta):
 			      "  ID_OBJ,       " \
 			      "  date,         " \
 			      "  type,         " \
-			      "  value,        " \
+			      "  description,  " \
 			      "  note          " \
 			      ")               " \
 			      "VALUES (        " \
@@ -626,7 +626,7 @@ class CTransaction(CMeta):
 			                                self.id_obj,
 			                                self.date,
 			                                self.type,
-			                                self.value,
+			                                self.description,
 			                                self.note)
 			self.connection.exec_insert(sql)
 
@@ -634,21 +634,21 @@ class CTransaction(CMeta):
 			self.id = self.connection.get_single(sql)
 
 		else:
-			sql = "UPDATE {}        " \
-			      "SET              " \
-			      "  id_obj = '{}', " \
-			      "  date   = '{}', " \
-			      "  type   = '{}', " \
-			      "  value  = '{}', " \
-			      "  note   = '{}', " \
-			      "WHERE            " \
-			      "  id = '{}'      ".format(TABLE_META,
-			                                 self.id_obj,
-			                                 self.date,
-			                                 self.type,
-			                                 self.value,
-			                                 self.note,
-			                                 self.id)
+			sql = "UPDATE {}             " \
+			      "SET                   " \
+			      "  id_obj      = '{}', " \
+			      "  date        = '{}', " \
+			      "  type        = '{}', " \
+			      "  description = '{}', " \
+			      "  note        = '{}', " \
+			      "WHERE                 " \
+			      "  id = '{}'           ".format(TABLE_META,
+			                                      self.id_obj,
+			                                      self.date,
+			                                      self.type,
+			                                      self.description,
+			                                      self.note,
+			                                      self.id)
 			self.connection.exec_update(sql)
 
 	def load(self, in_id=None):
@@ -656,30 +656,30 @@ class CTransaction(CMeta):
 			self.id = in_id
 
 		if self.id is not None:
-			sql = "SELECT        " \
-			      "  ID_OBJ,     " \
-			      "  date,       " \
-			      "  type,       " \
-			      "  value,      " \
-			      "  note        " \
-			      "FROM {}       " \
-			      "WHERE         " \
-			      "  ID_OBJ = {} ".format(TABLE_TRANSACTIONS,
-			                              self.id)
+			sql = "SELECT         " \
+			      "  ID_OBJ,      " \
+			      "  date,        " \
+			      "  type,        " \
+			      "  description, " \
+			      "  note         " \
+			      "FROM {}        " \
+			      "WHERE          " \
+			      "  ID_OBJ = {}  ".format(TABLE_TRANSACTIONS,
+			                               self.id)
 			_data = self.connection.get_multiple(sql)
 
-			self.id_obj  = _data[0]
-			self.date    = _data[1]
-			self.type    = _data[2]
-			self.value   = _data[3]
-			self.note    = _data[4]
+			self.id_obj      = _data[0]
+			self.date        = _data[1]
+			self.type        = _data[2]
+			self.description = _data[3]
+			self.note        = _data[4]
 
 	def clear(self, in_clear_id=False):
 		if in_clear_id:
 			self.id = None
 
-		self.id_obj = None
-		self.date   = ""
-		self.type   = ""
-		self.value  = ""
-		self.note   = ""
+		self.id_obj      = None
+		self.date        = ""
+		self.type        = ""
+		self.description = ""
+		self.note        = ""

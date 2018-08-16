@@ -13,6 +13,7 @@ class FormEquipment(CForm):
 	_transaction       = CTransaction
 
 	model_fields       = QStandardItemModel
+	model_transactions = QStandardItemModel
 	tree_fields        = QTreeView
 
 	current_main_group = None
@@ -33,13 +34,21 @@ class FormEquipment(CForm):
 		self.action_field_up       = QAction(self.icon_small_up,     "Переместить выше",        None)
 		self.action_field_down     = QAction(self.icon_small_down,   "Переместить ниже",        None)
 
+		self.action_transaction_add     = QAction(self.icon_small_insert,  "Добавить транзацкию", None)
+		self.action_transaction_income  = QAction(self.icon_small_baggage, "Поступление",         None)
+		self.action_transaction_move    = QAction(self.icon_small_user,    "Перемещение",         None)
+		self.action_transaction_service = QAction(self.icon_small_gears,   "Передача в ремонт",   None)
+		self.action_transaction_out     = QAction(self.icon_small_out,     "Списание",            None)
+		self.action_transaction_break   = QAction(self.icon_small_cross,   "Выход из строя",      None)
+		self.action_transaction_delete  = QAction(self.icon_small_delete,  "Удалить транзацкию",  None)
+
 	def __init_events__(self):
 		self.tree_fields.expanded.connect(self._gui_resize_fields)
 		self.tree_fields.collapsed.connect(self._gui_resize_fields)
 
 		self.tree_fields.clicked.connect(self._get_current_main)
 
-		self.list_values.doubleClicked.connect(self.select_value)
+		self.list_values.doubleClicked.connect(self._select_value)
 
 		self.action_save.triggered.connect(self.save)
 		self.action_save_as_copy.triggered.connect(self.save_copy)
@@ -50,11 +59,11 @@ class FormEquipment(CForm):
 		self.action_load.triggered.connect(self.load)
 		self.action_close.triggered.connect(self.close)
 
-		self.action_field_delete.triggered.connect(self.field_delete)
-		self.action_field_add.triggered.connect(self.field_add)
+		self.action_field_delete.triggered.connect(self._field_delete)
+		self.action_field_add.triggered.connect(self._field_add)
 
-		self.action_field_up.triggered.connect(self.field_up)
-		self.action_field_down.triggered.connect(self.field_down)
+		self.action_field_up.triggered.connect(self._field_up)
+		self.action_field_down.triggered.connect(self._field_down)
 
 	def __init_icons__(self):
 		self.icon_small_insert       = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
@@ -71,17 +80,24 @@ class FormEquipment(CForm):
 
 		self.icon_small_transactions = QIcon(self.application.PATH_ICONS_SMALL + "transactions.png")
 
+		self.icon_small_baggage      = QIcon(self.application.PATH_ICONS_SMALL + "baggage.png")
+		self.icon_small_gears        = QIcon(self.application.PATH_ICONS_SMALL + "gears.png")
+		self.icon_small_user         = QIcon(self.application.PATH_ICONS_SMALL + "user_gray.png")
+		self.icon_small_out          = QIcon(self.application.PATH_ICONS_SMALL + "document_move.png")
+		self.icon_small_cross        = QIcon(self.application.PATH_ICONS_SMALL + "cross.png")
+
 	def __init_objects__(self):
-		self._groups       = CCatalogFieldGroups(self.application.sql_connection)
-		self._group        = CCatalogFieldGroup(self.application.sql_connection)
+		self._groups            = CCatalogFieldGroups(self.application.sql_connection)
+		self._group             = CCatalogFieldGroup(self.application.sql_connection)
 
-		self._equipments   = CEquipments(self.application.sql_connection)
-		self._equipment    = CEquipment(self.application.sql_connection)
+		self._equipments        = CEquipments(self.application.sql_connection)
+		self._equipment         = CEquipment(self.application.sql_connection)
 
-		self._transactions = CTransactions(self.application.sql_connection)
-		self._transaction  = CTransaction(self.application.sql_connection)
+		self._transactions      = CTransactions(self.application.sql_connection)
+		self._transaction       = CTransaction(self.application.sql_connection)
 
-		self.model_fields  = QStandardItemModel()
+		self.model_fields       = QStandardItemModel()
+		self.model_transactions = QStandardItemModel()
 
 	def __init_menu__(self):
 		menu_actions = QMenu("Действия")
@@ -102,8 +118,20 @@ class FormEquipment(CForm):
 		menu_fields.addAction(self.action_field_up)
 		menu_fields.addAction(self.action_field_down)
 
+		menu_transactions = QMenu("Транзакции")
+		menu_transactions.addAction(self.action_transaction_add)
+		menu_transactions.addSeparator()
+		menu_transactions.addAction(self.action_transaction_income)
+		menu_transactions.addAction(self.action_transaction_move)
+		menu_transactions.addAction(self.action_transaction_service)
+		menu_transactions.addAction(self.action_transaction_out)
+		menu_transactions.addAction(self.action_transaction_break)
+		menu_transactions.addSeparator()
+		menu_transactions.addAction(self.action_transaction_delete)
+
 		self.menuBar().addMenu(menu_actions)
 		self.menuBar().addMenu(menu_fields)
+		self.menuBar().addMenu(menu_transactions)
 
 	def __ui__(self):
 		self.setWindowTitle("ОС и ТМЦ")
@@ -160,7 +188,7 @@ class FormEquipment(CForm):
 
 		_item_group = None
 		_item_field = None
-		_item_value = QStandartItemWithID(in_value)
+		_item_value = QStandardItemWithID(in_value)
 
 		for _index_row in range(self.model_fields.rowCount()):
 			_item_group = self.model_fields.item(_index_row)
@@ -176,37 +204,53 @@ class FormEquipment(CForm):
 						break
 				else:
 					_item_group.setCheckState(Qt.Checked)
-					_item_group.appendRow([QStandartItemWithID(_field), _item_value])
+					_item_group.appendRow([QStandardItemWithID(_field), _item_value])
 
 				if _item_group.checkState() == Qt.Checked:
 					self.tree_fields.setExpanded(self.model_fields.indexFromItem(_item_group), True)
 
 				break
 		else:
-			_item_group = QStandartItemWithID(_group)
+			_item_group = QStandardItemWithID(_group)
 			_item_group.setCheckable(True)
-			_item_group.appendRow([QStandartItemWithID(_field), _item_value])
+			_item_group.appendRow([QStandardItemWithID(_field), _item_value])
 			self.model_fields.appendRow([_item_group, QNoneModelItem()])
 
-	def load_fields(self):
+	def _load_fields(self):
 		list_groups = self._groups.get_list()
 
 		for group in list_groups:
 			self._group.load(group)
 
-			item_group = QStandartItemWithID(self._group.name)
+			item_group = QStandardItemWithID(self._group.name)
 			item_group.setCheckable(True)
 
 			list_fields = self._group.get_fields()
 			for field in list_fields:
-				item_group.appendRow([QStandartItemWithID(field), QStandartItemWithID("")])
+				item_group.appendRow([QStandardItemWithID(field), QStandardItemWithID("")])
 
 			self.model_fields.appendRow([item_group, QNoneModelItem()])
+
+	def _load_transactions(self):
+		self.model_transactions.clear()
+
+		_list_id = self._transactions.get_list_by_object(self._transaction.id)
+
+		for _id in _list_id:
+			self._transaction.load(_id)
+
+			_item_data        = QStandardItemWithID(self._transaction.date,        _id)
+			_item_type        = QStandardItemWithID(self._transaction.type,        _id)
+			_item_description = QStandardItemWithID(self._transaction.description, _id)
+			_item_note        = QStandardItemWithID(self._transaction.note,        _id)
+
+			self.model_transactions.appendRow([_item_data, _item_type, _item_description, _item_note])
+			self.table_transactions.sortByColumn(0, Qt.AscendingOrder)
 
 	def load(self, in_id=None):
 		self.model_fields.clear()
 
-		self.load_fields()
+		self._load_fields()
 
 		if in_id is not None:
 			self._equipment.load(in_id)
@@ -215,7 +259,7 @@ class FormEquipment(CForm):
 
 		self.field_note.setText(self._equipment.note)
 
-		self.load_title()
+		self._load_title()
 
 		_list_fields = self._equipment.fields.get_list()
 
@@ -229,7 +273,7 @@ class FormEquipment(CForm):
 		self.showCentered()
 		self._get_current_main()
 
-	def load_title(self):
+	def _load_title(self):
 		self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory,
 		                                        self._equipment.base.brand,
 		                                        self._equipment.base.model))
@@ -256,7 +300,7 @@ class FormEquipment(CForm):
 		self._equipment.save()
 
 		self._equipment.load()
-		self.load_title()
+		self._load_title()
 
 		self.application.form_main.equipments_load()
 		self.application.form_main.equipments_jump_to_id(self._equipment.id)
@@ -284,10 +328,10 @@ class FormEquipment(CForm):
 				self.current_main_field = _current_parent.child(_current_row, 0)
 				self.current_main_value = _current_parent.child(_current_row, 1)
 
-		self.load_list_values()
-		self.gui_enable_disable()
+		self._load_list_values()
+		self._gui_enable_disable()
 
-	def gui_enable_disable(self):
+	def _gui_enable_disable(self):
 		self.action_field_add.setEnabled(self.current_main_group is not None)
 
 		self.action_field_delete.setEnabled(self.current_main_field is not None)
@@ -303,7 +347,7 @@ class FormEquipment(CForm):
 			self.action_field_up.setEnabled(False)
 			self.action_field_down.setEnabled(False)
 
-	def load_list_values(self):
+	def _load_list_values(self):
 		self.list_values.clear()
 
 		if self.current_main_field is not None:
@@ -315,7 +359,7 @@ class FormEquipment(CForm):
 			if _values is not None:
 				self.list_values.addItems(_values)
 
-	def select_value(self):
+	def _select_value(self):
 		_item  = self.list_values.currentItem()
 		_value = _item.text()
 
@@ -325,22 +369,22 @@ class FormEquipment(CForm):
 		self.save()
 		self.close()
 
-	def field_delete(self):
+	def _field_delete(self):
 		_row = self.current_main_field.row()
 
 		self.current_main_group.removeRow(_row)
 
 		self._get_current_main()
 
-	def field_add(self):
+	def _field_add(self):
 		_dialog = QInputDialog()
 
 		_text, _result = _dialog.getText(self, "Новая характеристика", "Категория: {}".format(self.current_main_group.text()))
 
 		if _result:
-			self.current_main_group.appendRow([QStandartItemWithID(_text), QNoneModelItem()])
+			self.current_main_group.appendRow([QStandardItemWithID(_text), QNoneModelItem()])
 
-	def field_up(self):
+	def _field_up(self):
 		current_row = self.current_main_field.row()
 		_row        = self.current_main_group.takeRow(current_row)
 
@@ -349,7 +393,7 @@ class FormEquipment(CForm):
 
 		self._get_current_main()
 
-	def field_down(self):
+	def _field_down(self):
 		current_row = self.current_main_field.row()
 		_row        = self.current_main_group.takeRow(current_row)
 

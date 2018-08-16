@@ -128,7 +128,7 @@ class FormCatalogFields(CForm):
 				list_fields.append(item_field.text())
 
 			if field_name not in list_fields:
-				self.current_group.appendRow(QStandartItemWithID(field_name, None))
+				self.current_group.appendRow(QStandardItemWithID(field_name, None))
 
 	def _add_group(self):
 		group_name = "Название раздела"
@@ -138,7 +138,7 @@ class FormCatalogFields(CForm):
 			list_groups = self._groups.get_list()
 
 			if group_name not in list_groups:
-				item_group = QStandartItemWithID(group_name, None)
+				item_group = QStandardItemWithID(group_name, None)
 
 				self.model_fields.appendRow(item_group)
 
@@ -185,26 +185,26 @@ class FormCatalogFields(CForm):
 	def _service_defaults(self):
 		self.model_fields.clear()
 
-		item_group = QStandartItemWithID(FIELDS_GROUP_BASE, None)
-		item_group.appendRow(QStandartItemWithID("Категория",            None))
-		item_group.appendRow(QStandartItemWithID("Подкатегория",         None))
-		item_group.appendRow(QStandartItemWithID("Производитель",        None))
-		item_group.appendRow(QStandartItemWithID("Модель",               None))
-		item_group.appendRow(QStandartItemWithID("Серийный номер",       None))
-		item_group.appendRow(QStandartItemWithID("Описание", None))
-		item_group.appendRow(QStandartItemWithID("Состояние",            None))
+		item_group = QStandardItemWithID(FIELDS_GROUP_BASE, None)
+		item_group.appendRow(QStandardItemWithID("Категория", None))
+		item_group.appendRow(QStandardItemWithID("Подкатегория", None))
+		item_group.appendRow(QStandardItemWithID("Производитель", None))
+		item_group.appendRow(QStandardItemWithID("Модель", None))
+		item_group.appendRow(QStandardItemWithID("Серийный номер", None))
+		item_group.appendRow(QStandardItemWithID("Описание", None))
+		item_group.appendRow(QStandardItemWithID("Состояние", None))
 		self.model_fields.appendRow(item_group)
 
-		item_group = QStandartItemWithID(FIELDS_GROUP_PLACEMENT, None)
-		item_group.appendRow(QStandartItemWithID("Структура",            None))
-		item_group.appendRow(QStandartItemWithID("Помещение",            None))
-		item_group.appendRow(QStandartItemWithID("Сотрудник",            None))
+		item_group = QStandardItemWithID(FIELDS_GROUP_PLACEMENT, None)
+		item_group.appendRow(QStandardItemWithID("Структура", None))
+		item_group.appendRow(QStandardItemWithID("Помещение", None))
+		item_group.appendRow(QStandardItemWithID("Сотрудник", None))
 		self.model_fields.appendRow(item_group)
 
-		item_group = QStandartItemWithID(FIELDS_GROUP_ACCOUNTING, None)
-		item_group.appendRow(QStandartItemWithID("Инвентарный номер",    None))
-		item_group.appendRow(QStandartItemWithID("Числится",             None))
-		item_group.appendRow(QStandartItemWithID("Сотрудник",            None))
+		item_group = QStandardItemWithID(FIELDS_GROUP_ACCOUNTING, None)
+		item_group.appendRow(QStandardItemWithID("Инвентарный номер", None))
+		item_group.appendRow(QStandardItemWithID("Числится", None))
+		item_group.appendRow(QStandardItemWithID("Сотрудник", None))
 		self.model_fields.appendRow(item_group)
 
 	def load(self):
@@ -215,10 +215,10 @@ class FormCatalogFields(CForm):
 		for group_id in list_groups_id:
 			self._group.load(int(group_id))
 
-			item_group = QStandartItemWithID(self._group.name, self._group.id)
+			item_group = QStandardItemWithID(self._group.name, self._group.id)
 
 			for field in self._group.get_fields():
-				item_group.appendRow(QStandartItemWithID(field, None))
+				item_group.appendRow(QStandardItemWithID(field, None))
 
 			self.model_fields.appendRow(item_group)
 

@@ -82,12 +82,12 @@ class CForm(QMainWindow):
 		self.statusBar().showMessage(in_message, in_timeout)
 
 
-class QStandartItemWithID(QStandardItem):
+class QStandardItemWithID(QStandardItem):
 	id  = ""
 	tag = ""
 
 	def __init__(self, in_caption, in_id="", in_editable=True):
-		super(QStandartItemWithID, self).__init__(in_caption)
+		super(QStandardItemWithID, self).__init__(in_caption)
 
 		self.id = in_id
 		self.setEditable(in_editable)
@@ -96,7 +96,7 @@ class QStandartItemWithID(QStandardItem):
 		self.tag = in_tag
 
 
-class QNoneModelItem(QStandartItemWithID):
+class QNoneModelItem(QStandardItemWithID):
 	def __init__(self, in_color=None):
 		super(QNoneModelItem, self).__init__("", None)
 

@@ -109,16 +109,16 @@ class FormMain(CForm):
 
 		self._equipment.load(in_id)
 
-		item_brand           = QStandartItemWithID(self._equipment.base.brand,          in_id)
-		item_model           = QStandartItemWithID(self._equipment.base.model,          in_id)
-		item_state           = QStandartItemWithID(self._equipment.base.state,          in_id)
-		item_place_struct    = QStandartItemWithID(self._equipment.placement.struct,    in_id)
-		item_place_placement = QStandartItemWithID(self._equipment.placement.placement, in_id)
-		item_place_people    = QStandartItemWithID(self._equipment.placement.people,    in_id)
-		item_note            = QStandartItemWithID(self._equipment.note,                in_id)
+		item_brand           = QStandardItemWithID(self._equipment.base.brand, in_id)
+		item_model           = QStandardItemWithID(self._equipment.base.model, in_id)
+		item_state           = QStandardItemWithID(self._equipment.base.state, in_id)
+		item_place_struct    = QStandardItemWithID(self._equipment.placement.struct, in_id)
+		item_place_placement = QStandardItemWithID(self._equipment.placement.placement, in_id)
+		item_place_people    = QStandardItemWithID(self._equipment.placement.people, in_id)
+		item_note            = QStandardItemWithID(self._equipment.note, in_id)
 
-		item_acc_number      = QStandartItemWithID(self._equipment.accounting.number,   in_id)
-		item_acc_people      = QStandartItemWithID(self._equipment.accounting.people,   in_id)
+		item_acc_number      = QStandardItemWithID(self._equipment.accounting.number, in_id)
+		item_acc_people      = QStandardItemWithID(self._equipment.accounting.people, in_id)
 
 		item_brand.setFont(FONT_BOLD)
 		item_model.setFont(FONT_BOLD)
@@ -150,7 +150,7 @@ class FormMain(CForm):
 				break
 
 		if item_category is None:
-			item_category = QStandartItemWithID(self._equipment.base.category)
+			item_category = QStandardItemWithID(self._equipment.base.category)
 			item_category.setBackground(_color_group)
 			self.model_equipments.appendRow([item_category] + [QNoneModelItem(_color_group) for index in range(len(list_items) - 1)])
 
@@ -163,7 +163,7 @@ class FormMain(CForm):
 				break
 
 		if item_subcategory is None:
-			item_subcategory = QStandartItemWithID(self._equipment.base.subcategory)
+			item_subcategory = QStandardItemWithID(self._equipment.base.subcategory)
 			item_subcategory.setBackground(_color_subgroup)
 			item_category.appendRow([item_subcategory]  + [QNoneModelItem(_color_subgroup) for index in range(len(list_items) - 1)])
 
