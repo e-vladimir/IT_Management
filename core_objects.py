@@ -181,13 +181,19 @@ class CMetaObject(CMeta):
 	def delete(self):
 		self.connection.transaction_start()
 		sql = "DELETE FROM {0} " \
-		      "WHERE " \
-		      "  ID_OBJ='{1}'".format(TABLE_FIELDS, self.id)
+		      "WHERE           " \
+		      "  ID_OBJ='{1}'  ".format(TABLE_FIELDS, self.id)
 		self.connection.exec_delete(sql)
 
 		sql = "DELETE FROM {0} " \
-		      "WHERE " \
-		      "  ID='{1}'".format(TABLE_META, self.id)
+		      "WHERE           " \
+		      "  ID='{1}'      ".format(TABLE_META, self.id)
+		self.connection.exec_delete(sql)
+
+		sql = "DELETE FROM {}  " \
+		      "WHERE           " \
+		      "  ID_OBJ='{}'   ".format(TABLE_TRANSACTIONS, self.id)
+
 		self.connection.exec_delete(sql)
 
 		self.connection.transaction_commit()
@@ -661,11 +667,13 @@ class CEquipment(CMetaObject):
 	_field_groups          = CCatalogFieldGroups
 	_field_group           = CCatalogFieldGroup
 	_transaction           = CTransaction
+	_transactions          = CTransactions
 
 	def __init_objects__(self):
 		self._field_groups = CCatalogFieldGroups(self.connection)
 		self._field_group  = CCatalogFieldGroup(self.connection)
 		self._transaction  = CTransaction(self.connection)
+		self._transactions = CTransactions(self.connection)
 
 		self.base          = GroupBase(self)
 		self.placement     = GroupPlacement(self)
