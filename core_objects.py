@@ -1,3 +1,4 @@
+from datetime import datetime
 from dict import *
 from core_sqlite import *
 
@@ -656,16 +657,33 @@ class CEquipment(CMetaObject):
 	placement              = GroupPlacement
 	accounting             = GroupAccounting
 
+	_stasis                = []
 	_field_groups          = CCatalogFieldGroups
 	_field_group           = CCatalogFieldGroup
+	_transaction           = CTransaction
 
 	def __init_objects__(self):
 		self._field_groups = CCatalogFieldGroups(self.connection)
 		self._field_group  = CCatalogFieldGroup(self.connection)
+		self._transaction  = CTransaction(self.connection)
 
 		self.base          = GroupBase(self)
 		self.placement     = GroupPlacement(self)
 		self.accounting    = GroupAccounting(self)
+
+	def save(self):
+		super(CEquipment, self).save()
+
+		for field, old_value in self._stasis.items():
+			value = self.fields.get_field(field)
+
+			if not old_value == value:
+				self._transaction.clear(True)
+				self._transaction.id_obj = self.id
+				self._transaction.date   = datetime.now().strftime("%Y-%m-%d")
+				self._transaction.field  = field
+				self._transaction.value  = value
+				self._transaction.save()
 
 	def load(self, in_id=None):
 		super(CEquipment, self).load(in_id)
@@ -683,3 +701,6 @@ class CEquipment(CMetaObject):
 		      "ORDER BY " \
 		      "  value ASC ".format(TABLE_FIELDS, in_group, in_field)
 		return self.connection.get_list(sql)
+
+	def stasis_fields(self):
+		self._stasis = self.fields._fields

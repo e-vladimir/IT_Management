@@ -1,4 +1,3 @@
-import datetime
 from core_gui     import *
 from core_objects import *
 
@@ -261,7 +260,8 @@ class FormEquipment(CForm):
 		                                        self._equipment.base.model))
 
 	def save(self):
-		_old_values = self._equipment.fields._fields
+		if self._equipment.id is not None:
+			self._equipment.stasis_fields()
 
 		self._equipment.clear()
 
@@ -279,27 +279,13 @@ class FormEquipment(CForm):
 					field      = item_field.text()
 					value      = item_value.text()
 
-					_old_value = _old_values["{}/{}".format(group, field)]
-
 					self._equipment.set(group, field, value)
-
-					if not _old_value == value:
-						_date = datetime.datetime.now()
-						self._transaction.clear(True)
-						self._transaction.id_obj = _id_obj
-						self._transaction.date = _date.strftime("%Y-%m-%d")
-						self._transaction.field = "{}/{}".format(group, field)
-						self._transaction.value = value
-						self._transaction.save()
 
 		self._equipment.note = self.field_note.text()
 
 		self._equipment.save()
 
-		self._equipment.load()
-
-		self._load_transactions()
-		self._load_title()
+		self.load()
 
 		self.application.form_main.equipments_load()
 		self.application.form_main.equipments_jump_to_id(self._equipment.id)
