@@ -565,3 +565,121 @@ class CEquipment(CMetaObject):
 		      "ORDER BY " \
 		      "  value ASC ".format(TABLE_FIELDS, in_group, in_field)
 		return self.connection.get_list(sql)
+
+
+# Транзации
+class CTransactions(CMeta):
+	def __init_db__(self):
+		sql = "CREATE TABLE IF NOT EXISTS {0} " \
+		      "(" \
+		      "  ID     INTEGER PRIMARY KEY ASC, " \
+		      "  ID_OBJ INTEGER, " \
+		      "  date   TEXT, " \
+		      "  type   TEXT, " \
+		      "  value  TEXT, " \
+		      "  note   TEXT  " \
+		      ")".format(TABLE_TRANSACTIONS)
+
+		self.connection.exec_create(sql)
+
+	def get_list_by_object(self, in_id_obj):
+		sql = "SELECT              " \
+		      "  ID                " \
+		      "FROM {}             " \
+		      "WHERE               " \
+		      "  ID_OBJ='{}'       " \
+		      "ORDER BY date ASC   ".format(TABLE_TRANSACTIONS, in_id_obj)
+
+		return self.connection.get_list(sql)
+
+	def delete_by_object(self, in_id_obj):
+		sql = "DELETE FROM {} " \
+		      "WHERE ID_OBJ='{}'".format(TABLE_TRANSACTIONS, in_id_obj)
+
+		self.connection.exec_delete(sql)
+
+
+class CTransaction(CMeta):
+	id       = None
+	id_obj   = None
+	date     = ""
+	type     = ""
+	value    = ""
+	note     = ""
+
+	def save(self):
+		if self.id is None:
+			sql = "INSERT INTO {} (" \
+			      "  ID_OBJ,       " \
+			      "  date,         " \
+			      "  type,         " \
+			      "  value,        " \
+			      "  note          " \
+			      ")               " \
+			      "VALUES (        " \
+			      "  '{}',         " \
+			      "  '{}',         " \
+			      "  '{}',         " \
+			      "  '{}',         " \
+			      "  '{}',         " \
+			      ")               ".format(TABLE_META,
+			                                self.id_obj,
+			                                self.date,
+			                                self.type,
+			                                self.value,
+			                                self.note)
+			self.connection.exec_insert(sql)
+
+			sql = "SELECT last_insert_rowid()"
+			self.id = self.connection.get_single(sql)
+
+		else:
+			sql = "UPDATE {}        " \
+			      "SET              " \
+			      "  id_obj = '{}', " \
+			      "  date   = '{}', " \
+			      "  type   = '{}', " \
+			      "  value  = '{}', " \
+			      "  note   = '{}', " \
+			      "WHERE            " \
+			      "  id = '{}'      ".format(TABLE_META,
+			                                 self.id_obj,
+			                                 self.date,
+			                                 self.type,
+			                                 self.value,
+			                                 self.note,
+			                                 self.id)
+			self.connection.exec_update(sql)
+
+	def load(self, in_id=None):
+		if in_id is not None:
+			self.id = in_id
+
+		if self.id is not None:
+			sql = "SELECT        " \
+			      "  ID_OBJ,     " \
+			      "  date,       " \
+			      "  type,       " \
+			      "  value,      " \
+			      "  note        " \
+			      "FROM {}       " \
+			      "WHERE         " \
+			      "  ID_OBJ = {} ".format(TABLE_TRANSACTIONS,
+			                              self.id)
+			_data = self.connection.get_multiple(sql)
+
+			self.id_obj  = _data[0]
+			self.date    = _data[1]
+			self.type    = _data[2]
+			self.value   = _data[3]
+			self.note    = _data[4]
+
+	def clear(self, in_clear_id=False):
+		if in_clear_id:
+			self.id = None
+
+		self.id_obj = None
+		self.date   = ""
+		self.type   = ""
+		self.value  = ""
+		self.note   = ""

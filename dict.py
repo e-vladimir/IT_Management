@@ -1,6 +1,7 @@
 # Таблицы
 TABLE_META                = "OBJ_META"
 TABLE_FIELDS              = "OBJ_FIELDS"
+TABLE_TRANSACTIONS        = "TRANSACTIONS"
 
 # Оборудование
 EQUIPMENT                 = "ОС и ТМЦ"
@@ -13,3 +14,6 @@ FIELDS_GROUP_ACCOUNTING   = "Бухгалтерия"
 # Каталог характеристик
 CATALOG_FIELDS_GROUP      = "Группа характеристик"
 CATALOG_FIELDS_GROUP_NAME = "Название"
+
+# Транзакции
+TRANSACTION               = "Транзакция"

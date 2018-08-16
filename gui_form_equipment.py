@@ -9,6 +9,9 @@ class FormEquipment(CForm):
 	_equipments        = CEquipments
 	_equipment         = CEquipment
 
+	_transactions      = CTransactions
+	_transaction       = CTransaction
+
 	model_fields       = QStandardItemModel
 	tree_fields        = QTreeView
 
@@ -54,25 +57,31 @@ class FormEquipment(CForm):
 		self.action_field_down.triggered.connect(self.field_down)
 
 	def __init_icons__(self):
-		self.icon_small_insert = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
-		self.icon_small_delete = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
+		self.icon_small_insert       = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
+		self.icon_small_delete       = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
 
-		self.icon_small_open   = QIcon(self.application.PATH_ICONS_SMALL + "table_open.png")
-		self.icon_small_save   = QIcon(self.application.PATH_ICONS_SMALL + "table_save.png")
-		self.icon_small_close  = QIcon(self.application.PATH_ICONS_SMALL + "table_close.png")
+		self.icon_small_open         = QIcon(self.application.PATH_ICONS_SMALL + "table_open.png")
+		self.icon_small_save         = QIcon(self.application.PATH_ICONS_SMALL + "table_save.png")
+		self.icon_small_close        = QIcon(self.application.PATH_ICONS_SMALL + "table_close.png")
 
-		self.icon_small_fields = QIcon(self.application.PATH_ICONS_SMALL + "fields.png")
+		self.icon_small_fields       = QIcon(self.application.PATH_ICONS_SMALL + "fields.png")
 
-		self.icon_small_up     = QIcon(self.application.PATH_ICONS_SMALL + "arrow_up.png")
-		self.icon_small_down   = QIcon(self.application.PATH_ICONS_SMALL + "arrow_down.png")
+		self.icon_small_up           = QIcon(self.application.PATH_ICONS_SMALL + "arrow_up.png")
+		self.icon_small_down         = QIcon(self.application.PATH_ICONS_SMALL + "arrow_down.png")
+
+		self.icon_small_transactions = QIcon(self.application.PATH_ICONS_SMALL + "transactions.png")
 
 	def __init_objects__(self):
-		self._groups      = CCatalogFieldGroups(self.application.sql_connection)
-		self._group       = CCatalogFieldGroup(self.application.sql_connection)
-		self._equipments  = CEquipments(self.application.sql_connection)
-		self._equipment   = CEquipment(self.application.sql_connection)
+		self._groups       = CCatalogFieldGroups(self.application.sql_connection)
+		self._group        = CCatalogFieldGroup(self.application.sql_connection)
 
-		self.model_fields = QStandardItemModel()
+		self._equipments   = CEquipments(self.application.sql_connection)
+		self._equipment    = CEquipment(self.application.sql_connection)
+
+		self._transactions = CTransactions(self.application.sql_connection)
+		self._transaction  = CTransaction(self.application.sql_connection)
+
+		self.model_fields  = QStandardItemModel()
 
 	def __init_menu__(self):
 		menu_actions = QMenu("Действия")
@@ -100,9 +109,9 @@ class FormEquipment(CForm):
 		self.setWindowTitle("ОС и ТМЦ")
 		self.setMinimumSize(640, 480)
 
-		self._init_tabs_()
+		self._init_tabs()
 
-	def _init_tab_main_(self):
+	def _init_tab_main(self):
 		self.tree_fields = QTreeView()
 		self.tree_fields.setMinimumWidth(450)
 		self.tree_fields.setModel(self.model_fields)
@@ -116,9 +125,14 @@ class FormEquipment(CForm):
 		splitter_main.addWidget(self.tree_fields)
 		splitter_main.addWidget(self.list_values)
 
-		self.tabs.addTab(splitter_main, "Характеристики")
+		self.tabs.addTab(splitter_main, self.icon_small_fields, "Характеристики")
 
-	def _init_tabs_(self):
+	def _init_tab_transactions(self):
+		self.table_transactions = QTableView()
+
+		self.tabs.addTab(self.table_transactions, self.icon_small_transactions, "Транзакции")
+
+	def _init_tabs(self):
 		self.tabs = QTabWidget()
 		self.field_note = QLineEdit()
 		self.field_note.setPlaceholderText("Примечание")
@@ -134,7 +148,8 @@ class FormEquipment(CForm):
 
 		self.setCentralWidget(central_widget)
 
-		self._init_tab_main_()
+		self._init_tab_main()
+		self._init_tab_transactions()
 
 	def _gui_resize_fields(self):
 		self.tree_fields.resizeColumnToContents(0)
