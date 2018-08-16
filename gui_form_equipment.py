@@ -1,3 +1,4 @@
+import datetime
 from core_gui     import *
 from core_objects import *
 
@@ -33,14 +34,6 @@ class FormEquipment(CForm):
 
 		self.action_field_up       = QAction(self.icon_small_up,     "Переместить выше",        None)
 		self.action_field_down     = QAction(self.icon_small_down,   "Переместить ниже",        None)
-
-		self.action_transaction_add     = QAction(self.icon_small_insert,  "Добавить транзацкию", None)
-		self.action_transaction_income  = QAction(self.icon_small_baggage, "Поступление",         None)
-		self.action_transaction_move    = QAction(self.icon_small_user,    "Перемещение",         None)
-		self.action_transaction_service = QAction(self.icon_small_gears,   "Передача в ремонт",   None)
-		self.action_transaction_out     = QAction(self.icon_small_out,     "Списание",            None)
-		self.action_transaction_break   = QAction(self.icon_small_cross,   "Выход из строя",      None)
-		self.action_transaction_delete  = QAction(self.icon_small_delete,  "Удалить транзацкию",  None)
 
 	def __init_events__(self):
 		self.tree_fields.expanded.connect(self._gui_resize_fields)
@@ -80,12 +73,6 @@ class FormEquipment(CForm):
 
 		self.icon_small_transactions = QIcon(self.application.PATH_ICONS_SMALL + "transactions.png")
 
-		self.icon_small_baggage      = QIcon(self.application.PATH_ICONS_SMALL + "baggage.png")
-		self.icon_small_gears        = QIcon(self.application.PATH_ICONS_SMALL + "gears.png")
-		self.icon_small_user         = QIcon(self.application.PATH_ICONS_SMALL + "user_gray.png")
-		self.icon_small_out          = QIcon(self.application.PATH_ICONS_SMALL + "document_move.png")
-		self.icon_small_cross        = QIcon(self.application.PATH_ICONS_SMALL + "cross.png")
-
 	def __init_objects__(self):
 		self._groups            = CCatalogFieldGroups(self.application.sql_connection)
 		self._group             = CCatalogFieldGroup(self.application.sql_connection)
@@ -118,20 +105,8 @@ class FormEquipment(CForm):
 		menu_fields.addAction(self.action_field_up)
 		menu_fields.addAction(self.action_field_down)
 
-		menu_transactions = QMenu("Транзакции")
-		menu_transactions.addAction(self.action_transaction_add)
-		menu_transactions.addSeparator()
-		menu_transactions.addAction(self.action_transaction_income)
-		menu_transactions.addAction(self.action_transaction_move)
-		menu_transactions.addAction(self.action_transaction_service)
-		menu_transactions.addAction(self.action_transaction_out)
-		menu_transactions.addAction(self.action_transaction_break)
-		menu_transactions.addSeparator()
-		menu_transactions.addAction(self.action_transaction_delete)
-
 		self.menuBar().addMenu(menu_actions)
 		self.menuBar().addMenu(menu_fields)
-		self.menuBar().addMenu(menu_transactions)
 
 	def __ui__(self):
 		self.setWindowTitle("ОС и ТМЦ")
@@ -157,6 +132,7 @@ class FormEquipment(CForm):
 
 	def _init_tab_transactions(self):
 		self.table_transactions = QTableView()
+		self.table_transactions.setModel(self.model_transactions)
 
 		self.tabs.addTab(self.table_transactions, self.icon_small_transactions, "Транзакции")
 
@@ -181,6 +157,8 @@ class FormEquipment(CForm):
 
 	def _gui_resize_fields(self):
 		self.tree_fields.resizeColumnToContents(0)
+		self.table_transactions.resizeColumnsToContents()
+		self.table_transactions.resizeRowsToContents()
 
 	def _set_field(self, in_field="", in_value=""):
 		_group = extract_field_group(in_field)
@@ -234,18 +212,20 @@ class FormEquipment(CForm):
 	def _load_transactions(self):
 		self.model_transactions.clear()
 
-		_list_id = self._transactions.get_list_by_object(self._transaction.id)
+		_list_id = self._transactions.get_list_by_object(self._equipment.id)
 
 		for _id in _list_id:
 			self._transaction.load(_id)
 
-			_item_data        = QStandardItemWithID(self._transaction.date,        _id)
-			_item_type        = QStandardItemWithID(self._transaction.type,        _id)
-			_item_description = QStandardItemWithID(self._transaction.description, _id)
-			_item_note        = QStandardItemWithID(self._transaction.note,        _id)
+			_item_data  = QStandardItemWithID(self._transaction.date,  _id)
+			_item_field = QStandardItemWithID(self._transaction.field, _id)
+			_item_value = QStandardItemWithID(self._transaction.value, _id)
+			_item_note  = QStandardItemWithID(self._transaction.note,  _id)
 
-			self.model_transactions.appendRow([_item_data, _item_type, _item_description, _item_note])
+			self.model_transactions.appendRow([_item_data, _item_field, _item_value, _item_note])
 			self.table_transactions.sortByColumn(0, Qt.AscendingOrder)
+
+			self.model_transactions.setHorizontalHeaderLabels(["Дата", "Характеристика", "Значение", "Примечание"])
 
 	def load(self, in_id=None):
 		self.model_fields.clear()
@@ -268,6 +248,8 @@ class FormEquipment(CForm):
 
 			self._set_field(_field, _value)
 
+		self._load_transactions()
+
 		self._gui_resize_fields()
 
 		self.showCentered()
@@ -279,7 +261,11 @@ class FormEquipment(CForm):
 		                                        self._equipment.base.model))
 
 	def save(self):
+		_old_values = self._equipment.fields._fields
+
 		self._equipment.clear()
+
+		_id_obj = self._equipment.id
 
 		for index_group in range(self.model_fields.rowCount()):
 			item_group = self.model_fields.item(index_group)
@@ -293,13 +279,26 @@ class FormEquipment(CForm):
 					field      = item_field.text()
 					value      = item_value.text()
 
+					_old_value = _old_values["{}/{}".format(group, field)]
+
 					self._equipment.set(group, field, value)
+
+					if not _old_value == value:
+						_date = datetime.datetime.now()
+						self._transaction.clear(True)
+						self._transaction.id_obj = _id_obj
+						self._transaction.date = _date.strftime("%Y-%m-%d")
+						self._transaction.field = "{}/{}".format(group, field)
+						self._transaction.value = value
+						self._transaction.save()
 
 		self._equipment.note = self.field_note.text()
 
 		self._equipment.save()
 
 		self._equipment.load()
+
+		self._load_transactions()
 		self._load_title()
 
 		self.application.form_main.equipments_load()
