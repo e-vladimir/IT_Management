@@ -173,11 +173,6 @@ class CMetaObject(CMeta):
 		self.fields.clear()
 		self.note = ""
 
-	def set_connection(self, in_connection=None):
-		super(CMetaObject, self).set_connection(in_connection)
-
-		self.fields = CMetaFields(in_connection)
-
 	def delete(self):
 		self.connection.transaction_start()
 		sql = "DELETE FROM {0} " \
@@ -198,22 +193,8 @@ class CMetaObject(CMeta):
 
 		self.connection.transaction_commit()
 
-	def load(self, in_id=None):
-		if in_id is not None:
-			self.id = in_id
-
-		if self.id is not None:
-			sql = "SELECT " \
-			      "  type, note " \
-			      "FROM {0} " \
-			      "WHERE" \
-			      "  id = {1}".format(TABLE_META, self.id)
-			_data = self.connection.get_multiple(sql)
-
-			self.type = _data[0]
-			self.note = _data[1]
-
-			self.fields.load(self.id)
+	def get(self, in_field_cat, in_field_subcat):
+		return self.fields.get_field("{}/{}".format(in_field_cat, in_field_subcat))
 
 	def save(self):
 		if self.id is None:
@@ -245,8 +226,27 @@ class CMetaObject(CMeta):
 	def set(self, in_field_cat, in_field_subcat, in_value=""):
 		self.fields.set_field("{}/{}".format(in_field_cat, in_field_subcat), in_value)
 
-	def get(self, in_field_cat, in_field_subcat):
-		return self.fields.get_field("{}/{}".format(in_field_cat, in_field_subcat))
+	def set_connection(self, in_connection=None):
+		super(CMetaObject, self).set_connection(in_connection)
+
+		self.fields = CMetaFields(in_connection)
+
+	def load(self, in_id=None):
+		if in_id is not None:
+			self.id = in_id
+
+		if self.id is not None:
+			sql = "SELECT " \
+			      "  type, note " \
+			      "FROM {0} " \
+			      "WHERE" \
+			      "  id = {1}".format(TABLE_META, self.id)
+			_data = self.connection.get_multiple(sql)
+
+			self.type = _data[0]
+			self.note = _data[1]
+
+			self.fields.load(self.id)
 
 
 # Базовые классы
@@ -428,6 +428,12 @@ class CTransactions(CMeta):
 
 		self.connection.exec_create(sql)
 
+	def delete_by_object(self, in_id_obj):
+		sql = "DELETE FROM {} " \
+		      "WHERE ID_OBJ='{}'".format(TABLE_TRANSACTIONS, in_id_obj)
+
+		self.connection.exec_delete(sql)
+
 	def get_list_by_object(self, in_id_obj):
 		sql = "SELECT              " \
 		      "  ID                " \
@@ -438,12 +444,6 @@ class CTransactions(CMeta):
 
 		return self.connection.get_list(sql)
 
-	def delete_by_object(self, in_id_obj):
-		sql = "DELETE FROM {} " \
-		      "WHERE ID_OBJ='{}'".format(TABLE_TRANSACTIONS, in_id_obj)
-
-		self.connection.exec_delete(sql)
-
 
 class CTransaction(CMeta):
 	id     = None
@@ -452,6 +452,39 @@ class CTransaction(CMeta):
 	field  = ""
 	value  = ""
 	note   = ""
+
+	def clear(self, in_clear_id=False):
+		if in_clear_id:
+			self.id = None
+
+		self.id_obj = None
+		self.date   = ""
+		self.field  = ""
+		self.value  = ""
+		self.note   = ""
+
+	def load(self, in_id=None):
+		if in_id is not None:
+			self.id = in_id
+
+		if self.id is not None:
+			sql = "SELECT         " \
+			      "  ID_OBJ,      " \
+			      "  date,        " \
+			      "  field,       " \
+			      "  value,       " \
+			      "  note         " \
+			      "FROM {}        " \
+			      "WHERE          " \
+			      "  ID = {}      ".format(TABLE_TRANSACTIONS,
+			                               self.id)
+			_data = self.connection.get_multiple(sql)
+
+			self.id_obj = _data[0]
+			self.date   = _data[1]
+			self.field  = _data[2]
+			self.value  = _data[3]
+			self.note   = _data[4]
 
 	def save(self):
 		if self.id is None:
@@ -497,38 +530,12 @@ class CTransaction(CMeta):
 			                                      self.id)
 			self.connection.exec_update(sql)
 
-	def load(self, in_id=None):
-		if in_id is not None:
-			self.id = in_id
-
-		if self.id is not None:
-			sql = "SELECT         " \
-			      "  ID_OBJ,      " \
-			      "  date,        " \
-			      "  field,       " \
-			      "  value,       " \
-			      "  note         " \
-			      "FROM {}        " \
-			      "WHERE          " \
-			      "  ID = {}      ".format(TABLE_TRANSACTIONS,
-			                               self.id)
-			_data = self.connection.get_multiple(sql)
-
-			self.id_obj = _data[0]
-			self.date   = _data[1]
-			self.field  = _data[2]
-			self.value  = _data[3]
-			self.note   = _data[4]
-
-	def clear(self, in_clear_id=False):
-		if in_clear_id:
-			self.id = None
-
-		self.id_obj = None
-		self.date   = ""
-		self.field  = ""
-		self.value  = ""
-		self.note   = ""
+	def delete(self):
+		sql = "DELETE FROM {} " \
+		      "WHERE          " \
+		      "  ID = '{}'    ".format(TABLE_TRANSACTIONS,
+		                               self.id)
+		self.connection.exec_delete(sql)
 
 
 # ОС и ТМЦ
@@ -637,14 +644,6 @@ class CEquipments(CMeta):
 
 		return _commit
 
-	def set_value(self, in_field, in_value):
-		sql = "UPDATE {} " \
-		      "SET " \
-		      "  value='{}' " \
-		      "WHERE " \
-		      "  field='{}'".format(TABLE_FIELDS, in_value, in_field)
-		return self.connection.exec_update(sql)
-
 	def replace_value(self, in_field, in_value_from, in_value_to):
 		sql = "UPDATE {} " \
 		      "SET " \
@@ -653,6 +652,14 @@ class CEquipments(CMeta):
 		      "  field='{}' " \
 		      "AND " \
 		      "  value='{}'".format(TABLE_FIELDS, in_value_to, in_field, in_value_from)
+		return self.connection.exec_update(sql)
+
+	def set_value(self, in_field, in_value):
+		sql = "UPDATE {} " \
+		      "SET " \
+		      "  value='{}' " \
+		      "WHERE " \
+		      "  field='{}'".format(TABLE_FIELDS, in_value, in_field)
 		return self.connection.exec_update(sql)
 
 
@@ -679,27 +686,6 @@ class CEquipment(CMetaObject):
 		self.placement     = GroupPlacement(self)
 		self.accounting    = GroupAccounting(self)
 
-	def save(self):
-		super(CEquipment, self).save()
-
-		for field, old_value in self._stasis.items():
-			value = self.fields.get_field(field)
-
-			if not old_value == value:
-				self._transaction.clear(True)
-				self._transaction.id_obj = self.id
-				self._transaction.date   = datetime.now().strftime("%Y-%m-%d")
-				self._transaction.field  = field
-				self._transaction.value  = value
-				self._transaction.save()
-
-	def load(self, in_id=None):
-		super(CEquipment, self).load(in_id)
-
-		self.base.load()
-		self.placement.load()
-		self.accounting.load()
-
 	def get_values_by_field(self, in_group="", in_field=""):
 		sql = "SELECT DISTINCT " \
 		      "  value " \
@@ -709,6 +695,31 @@ class CEquipment(CMetaObject):
 		      "ORDER BY " \
 		      "  value ASC ".format(TABLE_FIELDS, in_group, in_field)
 		return self.connection.get_list(sql)
+
+	def load(self, in_id=None):
+		super(CEquipment, self).load(in_id)
+
+		self.base.load()
+		self.placement.load()
+		self.accounting.load()
+
+	def save(self):
+		super(CEquipment, self).save()
+
+		#TODO: AttributeError: 'list' object has no attribute 'items'
+		try:
+			for field, old_value in self._stasis.items():
+				value = self.fields.get_field(field)
+
+				if not old_value == value:
+					self._transaction.clear(True)
+					self._transaction.id_obj = self.id
+					self._transaction.date   = datetime.now().strftime("%Y-%m-%d")
+					self._transaction.field  = field
+					self._transaction.value  = value
+					self._transaction.save()
+		except:
+			pass
 
 	def stasis_fields(self):
 		self._stasis = self.fields._fields

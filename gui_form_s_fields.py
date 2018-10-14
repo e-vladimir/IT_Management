@@ -266,6 +266,16 @@ class FormServiceFields(CForm):
 
 		self.tree_r_value_from.sortByColumn(0, Qt.AscendingOrder)
 
+	def open_set_value(self):
+		self.load_set_value()
+		self.showCentered()
+		self.tabs.setCurrentIndex(1)
+
+	def open_replace_field(self):
+		self.load_replace_field()
+		self.showCentered()
+		self.tabs.setCurrentIndex(0)
+
 	def select_replace_field_field(self):
 		_current_item   = self.tree_r_field_to.currentItem()
 		_current_parent = None
@@ -302,14 +312,3 @@ class FormServiceFields(CForm):
 			self.load_replace_field()
 		elif _tab_index == 1:
 			self.load_set_value()
-
-	def open_replace_field(self):
-		self.load_replace_field()
-		self.showCentered()
-		self.tabs.setCurrentIndex(0)
-
-	def open_set_value(self):
-		self.load_set_value()
-		self.showCentered()
-		self.tabs.setCurrentIndex(1)
-

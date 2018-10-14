@@ -97,12 +97,6 @@ class FormMain(CForm):
 
 		self._init_panel_equipment_()
 
-	def _init_panel_equipment_(self):
-		self.panel_equipment = QTreeView()
-		self.panel_equipment.setModel(self.model_equipments)
-		self.panel_equipment.setEditTriggers(QTreeView.NoEditTriggers)
-		self.panel_equipment.header().hide()
-
 	def _equipment_append_to_table(self, in_id=None):
 		_color_group    = QColor.fromRgb(230, 230, 230)
 		_color_subgroup = QColor.fromRgb(240, 240, 240)
@@ -193,12 +187,6 @@ class FormMain(CForm):
 		self.equipments_enable_disable()
 		self._equipments_expand()
 
-	def _equipments_expand(self):
-		_index = self.panel_equipment.currentIndex()
-
-		if _index is not None:
-			self.panel_equipment.setExpanded(_index, True)
-
 	def _equipment_get_level(self):
 		_index = self.panel_equipment.currentIndex()
 		_item  = self.model_equipments.itemFromIndex(_index)
@@ -214,6 +202,18 @@ class FormMain(CForm):
 				_level += 1
 
 		return _level
+
+	def _equipments_expand(self):
+		_index = self.panel_equipment.currentIndex()
+
+		if _index is not None:
+			self.panel_equipment.setExpanded(_index, True)
+
+	def _init_panel_equipment_(self):
+		self.panel_equipment = QTreeView()
+		self.panel_equipment.setModel(self.model_equipments)
+		self.panel_equipment.setEditTriggers(QTreeView.NoEditTriggers)
+		self.panel_equipment.header().hide()
 
 	def _select_equipments(self):
 		self.menu_sections.setTitle(self.action_select_equipment.text())

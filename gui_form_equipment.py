@@ -20,6 +20,8 @@ class FormEquipment(CForm):
 	current_main_field = None
 	current_main_value = None
 
+	current_transaction = None
+
 	def __init_actions__(self):
 		self.action_save           = QAction(self.icon_small_save,   "Сохранить",               None)
 		self.action_save_and_close = QAction(self.icon_small_save,   "Сохранить и закрыть",     None)
@@ -34,11 +36,17 @@ class FormEquipment(CForm):
 		self.action_field_up       = QAction(self.icon_small_up,     "Переместить выше",        None)
 		self.action_field_down     = QAction(self.icon_small_down,   "Переместить ниже",        None)
 
+		self.action_transaction_note   = QAction(self.icon_small_note,   "Записать примечание",        None)
+		self.action_transaction_delete = QAction(self.icon_small_delete, "Удалить транзакцию",        None)
+
 	def __init_events__(self):
 		self.tree_fields.expanded.connect(self._gui_resize_fields)
 		self.tree_fields.collapsed.connect(self._gui_resize_fields)
 
 		self.tree_fields.clicked.connect(self._get_current_main)
+
+		self.table_transactions.clicked.connect(self._get_current_transaction)
+		self.table_transactions.doubleClicked.connect(self.transaction_set_note)
 
 		self.list_values.doubleClicked.connect(self._select_value)
 
@@ -57,6 +65,9 @@ class FormEquipment(CForm):
 		self.action_field_up.triggered.connect(self._field_up)
 		self.action_field_down.triggered.connect(self._field_down)
 
+		self.action_transaction_note.triggered.connect(self.transaction_set_note)
+		self.action_transaction_delete.triggered.connect(self.transaction_delete)
+
 	def __init_icons__(self):
 		self.icon_small_insert       = QIcon(self.application.PATH_ICONS_SMALL + "table_row_insert.png")
 		self.icon_small_delete       = QIcon(self.application.PATH_ICONS_SMALL + "table_row_delete.png")
@@ -71,6 +82,8 @@ class FormEquipment(CForm):
 		self.icon_small_down         = QIcon(self.application.PATH_ICONS_SMALL + "arrow_down.png")
 
 		self.icon_small_transactions = QIcon(self.application.PATH_ICONS_SMALL + "transactions.png")
+
+		self.icon_small_note         = QIcon(self.application.PATH_ICONS_SMALL + "note.png")
 
 	def __init_objects__(self):
 		self._groups            = CCatalogFieldGroups(self.application.sql_connection)
@@ -104,8 +117,14 @@ class FormEquipment(CForm):
 		menu_fields.addAction(self.action_field_up)
 		menu_fields.addAction(self.action_field_down)
 
+		menu_transactions = QMenu("Транзакции")
+		menu_transactions.addAction(self.action_transaction_note)
+		menu_transactions.addSeparator()
+		menu_transactions.addAction(self.action_transaction_delete)
+
 		self.menuBar().addMenu(menu_actions)
 		self.menuBar().addMenu(menu_fields)
+		self.menuBar().addMenu(menu_transactions)
 
 	def __ui__(self):
 		self.setWindowTitle("ОС и ТМЦ")
@@ -132,6 +151,8 @@ class FormEquipment(CForm):
 	def _init_tab_transactions(self):
 		self.table_transactions = QTableView()
 		self.table_transactions.setModel(self.model_transactions)
+		self.table_transactions.setEditTriggers(QTableView.NoEditTriggers)
+		self.table_transactions.setSelectionBehavior(QTableView.SelectRows)
 
 		self.tabs.addTab(self.table_transactions, self.icon_small_transactions, "Транзакции")
 
@@ -154,10 +175,145 @@ class FormEquipment(CForm):
 		self._init_tab_main()
 		self._init_tab_transactions()
 
+	def _field_add(self):
+		_dialog = QInputDialog()
+
+		_text, _result = _dialog.getText(self, "Новая характеристика", "Категория: {}".format(self.current_main_group.text()))
+
+		if _result:
+			self.current_main_group.appendRow([QStandardItemWithID(_text), QNoneModelItem()])
+
+	def _field_delete(self):
+		_row = self.current_main_field.row()
+
+		self.current_main_group.removeRow(_row)
+
+		self._get_current_main()
+
+	def _field_down(self):
+		current_row = self.current_main_field.row()
+		_row        = self.current_main_group.takeRow(current_row)
+
+		self.current_main_group.insertRow(current_row + 1, _row)
+		self.tree_fields.setCurrentIndex(self.model_fields.indexFromItem(self.current_main_field))
+
+		self._get_current_main()
+
+	def _field_up(self):
+		current_row = self.current_main_field.row()
+		_row        = self.current_main_group.takeRow(current_row)
+
+		self.current_main_group.insertRow(current_row - 1, _row)
+		self.tree_fields.setCurrentIndex(self.model_fields.indexFromItem(self.current_main_field))
+
+		self._get_current_main()
+
+	def _get_current_main(self):
+		self.current_main_group = None
+		self.current_main_field = None
+		self.current_main_value = None
+
+		_current_index = self.tree_fields.currentIndex()
+		_current_row   = _current_index.row()
+		_current_item  = self.model_fields.itemFromIndex(_current_index)
+
+		if _current_item is not None:
+			_current_parent = _current_item.parent()
+
+			if _current_parent is None:
+				self.current_main_group = _current_item
+			else:
+				self.current_main_group = _current_parent
+				self.current_main_field = _current_parent.child(_current_row, 0)
+				self.current_main_value = _current_parent.child(_current_row, 1)
+
+		self._load_list_values()
+		self._gui_enable_disable()
+
+	def _get_current_transaction(self):
+		_current_index = self.table_transactions.currentIndex()
+		_current_item  = self.model_transactions.itemFromIndex(_current_index)
+
+		self.current_transaction = _current_item
+
+	def _gui_enable_disable(self):
+		self.action_field_add.setEnabled(self.current_main_group is not None)
+
+		self.action_field_delete.setEnabled(self.current_main_field is not None)
+
+		if self.current_main_field is not None:
+			self.action_field_delete.setText("Удалить: " + self.current_main_field.text())
+
+			self.action_field_up.setEnabled(self.current_main_field.row() > 0)
+			self.action_field_down.setEnabled(self.current_main_field.row() < (self.current_main_group.rowCount() - 1))
+		else:
+			self.action_field_delete.setText("Удалить характеристику")
+
+			self.action_field_up.setEnabled(False)
+			self.action_field_down.setEnabled(False)
+
 	def _gui_resize_fields(self):
 		self.tree_fields.resizeColumnToContents(0)
 		self.table_transactions.resizeColumnsToContents()
 		self.table_transactions.resizeRowsToContents()
+
+	def _load_fields(self):
+		list_groups = self._groups.get_list()
+
+		for group in list_groups:
+			self._group.load(group)
+
+			item_group = QStandardItemWithID(self._group.name)
+			item_group.setCheckable(True)
+
+			list_fields = self._group.get_fields()
+			for field in list_fields:
+				item_group.appendRow([QStandardItemWithID(field), QStandardItemWithID("")])
+
+			self.model_fields.appendRow([item_group, QNoneModelItem()])
+
+	def _load_list_values(self):
+		self.list_values.clear()
+
+		if self.current_main_field is not None:
+			_group = self.current_main_group.text()
+			_field = self.current_main_field.text()
+
+			_values = self._equipment.get_values_by_field(_group, _field)
+
+			if _values is not None:
+				self.list_values.addItems(_values)
+
+	def _load_transactions(self):
+		self.model_transactions.clear()
+
+		_list_id = self._transactions.get_list_by_object(self._equipment.id)
+
+		for _id in _list_id:
+			self._transaction.load(_id)
+
+			_item_data  = QStandardItemWithID(self._transaction.date,  _id)
+			_item_field = QStandardItemWithID(self._transaction.field, _id)
+			_item_value = QStandardItemWithID(self._transaction.value, _id)
+			_item_note  = QStandardItemWithID(self._transaction.note,  _id)
+
+			self.model_transactions.appendRow([_item_data, _item_field, _item_value, _item_note])
+
+		self.table_transactions.sortByColumn(0, Qt.AscendingOrder)
+		self.model_transactions.setHorizontalHeaderLabels(["Дата", "Характеристика", "Значение", "Примечание"])
+
+		self._gui_resize_fields()
+
+	def _load_title(self):
+		self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory,
+		                                        self._equipment.base.brand,
+		                                        self._equipment.base.model))
+
+	def _select_value(self):
+		_item  = self.list_values.currentItem()
+		_value = _item.text()
+
+		self.current_main_value.setText(_value)
 
 	def _set_field(self, in_field="", in_value=""):
 		_group = extract_field_group(in_field)
@@ -193,38 +349,21 @@ class FormEquipment(CForm):
 			_item_group.appendRow([QStandardItemWithID(_field), _item_value])
 			self.model_fields.appendRow([_item_group, QNoneModelItem()])
 
-	def _load_fields(self):
-		list_groups = self._groups.get_list()
+	def delete(self):
+		_dialog = QMessageBox()
 
-		for group in list_groups:
-			self._group.load(group)
+		_result = _dialog.question(self,
+		                           "Удаление ОС и ТМЦ",
+		                           "Подтвердите удаление: {} {}".format(self._equipment.base.brand,
+		                                                                self._equipment.base.model),
+		                           QMessageBox.Yes | QMessageBox.No)
 
-			item_group = QStandardItemWithID(self._group.name)
-			item_group.setCheckable(True)
+		if _result == QMessageBox.Yes:
+			self._equipment.delete()
 
-			list_fields = self._group.get_fields()
-			for field in list_fields:
-				item_group.appendRow([QStandardItemWithID(field), QStandardItemWithID("")])
+			self.close()
 
-			self.model_fields.appendRow([item_group, QNoneModelItem()])
-
-	def _load_transactions(self):
-		self.model_transactions.clear()
-
-		_list_id = self._transactions.get_list_by_object(self._equipment.id)
-
-		for _id in _list_id:
-			self._transaction.load(_id)
-
-			_item_data  = QStandardItemWithID(self._transaction.date,  _id)
-			_item_field = QStandardItemWithID(self._transaction.field, _id)
-			_item_value = QStandardItemWithID(self._transaction.value, _id)
-			_item_note  = QStandardItemWithID(self._transaction.note,  _id)
-
-			self.model_transactions.appendRow([_item_data, _item_field, _item_value, _item_note])
-			self.table_transactions.sortByColumn(0, Qt.AscendingOrder)
-
-			self.model_transactions.setHorizontalHeaderLabels(["Дата", "Характеристика", "Значение", "Примечание"])
+			self.application.form_main.equipments_load()
 
 	def load(self, in_id=None):
 		self.model_fields.clear()
@@ -251,13 +390,19 @@ class FormEquipment(CForm):
 
 		self._gui_resize_fields()
 
+		if not self.isVisible():
+			self.tabs.setCurrentIndex(0)
+
 		self.showCentered()
 		self._get_current_main()
 
-	def _load_title(self):
-		self.setWindowTitle("{} - {} {}".format(self._equipment.base.subcategory,
-		                                        self._equipment.base.brand,
-		                                        self._equipment.base.model))
+	def new(self):
+		self._equipment.clear(True)
+		self.load()
+
+	def new_and_show(self):
+		self.new()
+		self.show()
 
 	def save(self):
 		if self._equipment.id is not None:
@@ -290,102 +435,13 @@ class FormEquipment(CForm):
 		self.application.form_main.equipments_load()
 		self.application.form_main.equipments_jump_to_id(self._equipment.id)
 
-	def save_copy(self):
-		self._equipment.id = None
-		self.save()
-
-	def _get_current_main(self):
-		self.current_main_group = None
-		self.current_main_field = None
-		self.current_main_value = None
-
-		_current_index = self.tree_fields.currentIndex()
-		_current_row   = _current_index.row()
-		_current_item  = self.model_fields.itemFromIndex(_current_index)
-
-		if _current_item is not None:
-			_current_parent = _current_item.parent()
-
-			if _current_parent is None:
-				self.current_main_group = _current_item
-			else:
-				self.current_main_group = _current_parent
-				self.current_main_field = _current_parent.child(_current_row, 0)
-				self.current_main_value = _current_parent.child(_current_row, 1)
-
-		self._load_list_values()
-		self._gui_enable_disable()
-
-	def _gui_enable_disable(self):
-		self.action_field_add.setEnabled(self.current_main_group is not None)
-
-		self.action_field_delete.setEnabled(self.current_main_field is not None)
-
-		if self.current_main_field is not None:
-			self.action_field_delete.setText("Удалить: " + self.current_main_field.text())
-
-			self.action_field_up.setEnabled(self.current_main_field.row() > 0)
-			self.action_field_down.setEnabled(self.current_main_field.row() < (self.current_main_group.rowCount() - 1))
-		else:
-			self.action_field_delete.setText("Удалить характеристику")
-
-			self.action_field_up.setEnabled(False)
-			self.action_field_down.setEnabled(False)
-
-	def _load_list_values(self):
-		self.list_values.clear()
-
-		if self.current_main_field is not None:
-			_group = self.current_main_group.text()
-			_field = self.current_main_field.text()
-
-			_values = self._equipment.get_values_by_field(_group, _field)
-
-			if _values is not None:
-				self.list_values.addItems(_values)
-
-	def _select_value(self):
-		_item  = self.list_values.currentItem()
-		_value = _item.text()
-
-		self.current_main_value.setText(_value)
-
 	def save_and_close(self):
 		self.save()
 		self.close()
 
-	def _field_delete(self):
-		_row = self.current_main_field.row()
-
-		self.current_main_group.removeRow(_row)
-
-		self._get_current_main()
-
-	def _field_add(self):
-		_dialog = QInputDialog()
-
-		_text, _result = _dialog.getText(self, "Новая характеристика", "Категория: {}".format(self.current_main_group.text()))
-
-		if _result:
-			self.current_main_group.appendRow([QStandardItemWithID(_text), QNoneModelItem()])
-
-	def _field_up(self):
-		current_row = self.current_main_field.row()
-		_row        = self.current_main_group.takeRow(current_row)
-
-		self.current_main_group.insertRow(current_row - 1, _row)
-		self.tree_fields.setCurrentIndex(self.model_fields.indexFromItem(self.current_main_field))
-
-		self._get_current_main()
-
-	def _field_down(self):
-		current_row = self.current_main_field.row()
-		_row        = self.current_main_group.takeRow(current_row)
-
-		self.current_main_group.insertRow(current_row + 1, _row)
-		self.tree_fields.setCurrentIndex(self.model_fields.indexFromItem(self.current_main_field))
-
-		self._get_current_main()
+	def save_copy(self):
+		self._equipment.id = None
+		self.save()
 
 	def show(self, *args, **kwargs):
 		super(FormEquipment, self).show(*args, **kwargs)
@@ -393,26 +449,49 @@ class FormEquipment(CForm):
 		self.action_load.setEnabled(self._equipment.id is not None)
 		self.action_delete.setEnabled(self._equipment.id is not None)
 
-	def new(self):
-		self._equipment.clear(True)
-		self.load()
+	def transaction_set_note(self):
+		_row = None
 
-	def new_and_show(self):
-		self.new()
-		self.show()
+		if self.current_transaction is not None:
+			_row = self.current_transaction.row()
+			_item_note = self.model_transactions.item(_row, 3)
 
-	def delete(self):
-		_dialog = QMessageBox()
+			_dialog = QInputDialog()
+			_note, result = _dialog.getText(self, "Примечание к транзакции", "Введите примечание", text=_item_note.text())
 
-		_result = _dialog.question(self,
-		                           "Удаление ОС и ТМЦ",
-		                           "Подтвердите удаление: {} {}".format(self._equipment.base.brand,
-		                                                                self._equipment.base.model),
-		                           QMessageBox.Yes | QMessageBox.No)
+			if result:
+				self._transaction.load(_item_note.id)
+				self._transaction.note = _note
+				self._transaction.save()
 
-		if _result == QMessageBox.Yes:
-			self._equipment.delete()
+				_item_note.setText(_note)
 
-			self.close()
+				self._gui_resize_fields()
 
-			self.application.form_main.equipments_load()
+	def transaction_delete(self):
+		_row = None
+
+		if self.current_transaction is not None:
+			_row = self.current_transaction.row()
+			_item_date  = self.model_transactions.item(_row, 0)
+			_item_field = self.model_transactions.item(_row, 1)
+			_item_value = self.model_transactions.item(_row, 2)
+			_item_note  = self.model_transactions.item(_row, 3)
+
+			_date  = _item_date.text()
+			_field = _item_field.text()
+			_value = _item_value.text()
+			_note  = _item_note.text()
+
+			_dialog = QMessageBox()
+
+			_result = _dialog.question(self,
+			                           "Удаление транзакции",
+			                           "Подтвердите удаление транзакции: \n{} - {} = {} \nПримечание: {}".format(_date, _field, _value, _note),
+			                           QMessageBox.Yes | QMessageBox.No)
+
+			if _result == QMessageBox.Yes:
+				self._transaction.id = _item_date.id
+				self._transaction.delete()
+
+				self._load_transactions()

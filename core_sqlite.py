@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # Библиотека работы с SQL БД. Приоритетно - SQLite
-# V2-20171227
+# V-2018-10-14
+# PySide2
 
-from PySide import QtSql
+from PySide2 import QtSql
 
 
 class TSQLiteConnection(object):

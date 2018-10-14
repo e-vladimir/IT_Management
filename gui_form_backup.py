@@ -9,6 +9,10 @@ import os
 class FormBackups(CForm):
 	path_backups = ""
 
+	def __init_dirs(self):
+		if not os.path.exists(self.path_backups):
+			os.mkdir(self.path_backups)
+
 	def __init_objects__(self):
 		self.path_backups = self.application.PATH_COMMON + "backups/"
 
@@ -57,9 +61,23 @@ class FormBackups(CForm):
 		self.setContentsMargins(3, 3, 3, 3)
 		self.setCentralWidget(self.table_backups)
 
-	def __init_dirs(self):
-		if not os.path.exists(self.path_backups):
-			os.mkdir(self.path_backups)
+	def backup_delete(self):
+		_row     = self.table_backups.currentRow()
+		_date    = self.table_backups.item(_row, 0).text()
+		_time    = self.table_backups.item(_row, 1).text()
+		_objects = self.table_backups.item(_row, 2).text()
+
+		_dialog  = QMessageBox()
+		_result  = _dialog.question(self,
+		                            "Удаление копии",
+		                            "Подтвердите удаление резервной копии\nДата\время: {} {}. Объектов: {}".format(_date, _time, _objects),
+		                            QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes
+
+		if _result:
+			os.remove("{}{} {}.sqlite".format(self.path_backups,
+			                                  _date,
+			                                  _time))
+			self.backups_load()
 
 	def backup_exec(self):
 		_dialog = QMessageBox()
@@ -80,15 +98,41 @@ class FormBackups(CForm):
 
 			_dialog.exec_()
 
-	def gui_enable_disable(self):
-		select_backup = self.table_backups.currentRow() > -1
+	def backup_restore(self):
+		_row = self.table_backups.currentRow()
 
-		self.action_backup_restore.setEnabled(select_backup)
-		self.action_backup_delete.setEnabled(select_backup)
+		if _row >= 0:
+			_item_date = self.table_backups.item(_row, 0)
+			_item_time = self.table_backups.item(_row, 1)
 
-	def backup_save(self):
-		self.backup_exec()
-		self.backups_load()
+			_date = _item_date.text()
+			_time = _item_time.text()
+
+			_from = self.path_backups + "{} {}.sqlite".format(_date, _time)
+			_to   = self.application.PATH_COMMON + "db.sqlite"
+
+			_dialog = QMessageBox()
+			_result = _dialog.question(self,
+			                           "Восстановление",
+			                           "Восстановить базу на {} {}? \n Перед восстановление будет сделана резервная копия.".format(_date, _time),
+			                           QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes
+
+			if _result:
+				self.backup_exec()
+
+				_dialog = QMessageBox()
+				_dialog.setWindowTitle("Резервное копирование")
+
+				try:
+					copyfile(_from, _to)
+
+					_dialog.information(self, "Резервное копирование", "База восстановлена на {} {}".format(_date, _time))
+				except Exception as error:
+					_dialog.setText("Ошибка при выполнении восстановления")
+					_dialog.setIcon(QMessageBox.Critical)
+					_dialog.setDetailedText(str(error))
+
+					_dialog.exec_()
 
 	def backups_load(self):
 		self.table_backups.setRowCount(0)
@@ -132,60 +176,16 @@ class FormBackups(CForm):
 
 		self.gui_enable_disable()
 
+	def gui_enable_disable(self):
+		select_backup = self.table_backups.currentRow() > -1
+
+		self.action_backup_restore.setEnabled(select_backup)
+		self.action_backup_delete.setEnabled(select_backup)
+
+	def backup_save(self):
+		self.backup_exec()
+		self.backups_load()
+
 	def load_and_show(self):
 		self.backups_load()
 		self.showCentered()
-
-	def backup_restore(self):
-		_row = self.table_backups.currentRow()
-
-		if _row >= 0:
-			_item_date = self.table_backups.item(_row, 0)
-			_item_time = self.table_backups.item(_row, 1)
-
-			_date = _item_date.text()
-			_time = _item_time.text()
-
-			_from = self.path_backups + "{} {}.sqlite".format(_date, _time)
-			_to   = self.application.PATH_COMMON + "db.sqlite"
-
-			_dialog = QMessageBox()
-			_result = _dialog.question(self,
-			                           "Восстановление",
-			                           "Восстановить базу на {} {}? \n Перед восстановление будет сделана резервная копия.".format(_date, _time),
-			                           QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes
-
-			if _result:
-				self.backup_exec()
-
-				_dialog = QMessageBox()
-				_dialog.setWindowTitle("Резервное копирование")
-
-				try:
-					copyfile(_from, _to)
-
-					_dialog.information(self, "Резервное копирование", "База восстановлена на {} {}".format(_date, _time))
-				except Exception as error:
-					_dialog.setText("Ошибка при выполнении восстановления")
-					_dialog.setIcon(QMessageBox.Critical)
-					_dialog.setDetailedText(str(error))
-
-					_dialog.exec_()
-
-	def backup_delete(self):
-		_row     = self.table_backups.currentRow()
-		_date    = self.table_backups.item(_row, 0).text()
-		_time    = self.table_backups.item(_row, 1).text()
-		_objects = self.table_backups.item(_row, 2).text()
-
-		_dialog  = QMessageBox()
-		_result  = _dialog.question(self,
-		                            "Удаление копии",
-		                            "Подтвердите удаление резервной копии\nДата\время: {} {}. Объектов: {}".format(_date, _time, _objects),
-		                            QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes
-
-		if _result:
-			os.remove("{}{} {}.sqlite".format(self.path_backups,
-			                                  _date,
-			                                  _time))
-			self.backups_load()
