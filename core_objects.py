@@ -434,9 +434,21 @@ class CTransactions(CMeta):
 
 		self.connection.exec_delete(sql)
 
-	def get_list_by_object(self, in_id_obj):
+	# TODO: Перевести на фильтрацию
+
+	def get_list_id_by_object(self, in_id_obj):
 		sql = "SELECT              " \
 		      "  ID                " \
+		      "FROM {}             " \
+		      "WHERE               " \
+		      "  ID_OBJ='{}'       " \
+		      "ORDER BY date ASC   ".format(TABLE_TRANSACTIONS, in_id_obj)
+
+		return self.connection.get_list(sql)
+
+	def get_list_date_by_object(self, in_id_obj):
+		sql = "SELECT DISTINCT     " \
+		      "  date              " \
 		      "FROM {}             " \
 		      "WHERE               " \
 		      "  ID_OBJ='{}'       " \

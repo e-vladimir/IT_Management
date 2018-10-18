@@ -47,6 +47,8 @@ class FormEquipment(CForm):
 
 		self.table_transactions.clicked.connect(self._get_current_transaction)
 		self.table_transactions.doubleClicked.connect(self.transaction_set_note)
+		self.table_transactions.expanded.connect(self._gui_resize_fields)
+		self.table_transactions.collapsed.connect(self._gui_resize_fields)
 
 		self.list_values.doubleClicked.connect(self._select_value)
 
@@ -149,7 +151,7 @@ class FormEquipment(CForm):
 		self.tabs.addTab(splitter_main, self.icon_small_fields, "Характеристики")
 
 	def _init_tab_transactions(self):
-		self.table_transactions = QTableView()
+		self.table_transactions = QTreeView()
 		self.table_transactions.setModel(self.model_transactions)
 		self.table_transactions.setEditTriggers(QTableView.NoEditTriggers)
 		self.table_transactions.setSelectionBehavior(QTableView.SelectRows)
@@ -254,8 +256,9 @@ class FormEquipment(CForm):
 
 	def _gui_resize_fields(self):
 		self.tree_fields.resizeColumnToContents(0)
-		self.table_transactions.resizeColumnsToContents()
-		self.table_transactions.resizeRowsToContents()
+
+		for _id_column in range(self.model_transactions.columnCount()):
+			self.table_transactions.resizeColumnToContents(_id_column)
 
 	def _load_fields(self):
 		list_groups = self._groups.get_list()
@@ -287,20 +290,26 @@ class FormEquipment(CForm):
 	def _load_transactions(self):
 		self.model_transactions.clear()
 
-		_list_id = self._transactions.get_list_by_object(self._equipment.id)
+		_list_id    = self._transactions.get_list_id_by_object(self._equipment.id)
+		_list_dates = self._transactions.get_list_date_by_object(self._equipment.id)
 
-		for _id in _list_id:
-			self._transaction.load(_id)
+		for _date in _list_dates:
+			_item_data = QStandardItemWithID(_date)
 
-			_item_data  = QStandardItemWithID(self._transaction.date,  _id)
-			_item_field = QStandardItemWithID(self._transaction.field, _id)
-			_item_value = QStandardItemWithID(self._transaction.value, _id)
-			_item_note  = QStandardItemWithID(self._transaction.note,  _id)
+			for _id in _list_id:
+				self._transaction.load(_id)
 
-			self.model_transactions.appendRow([_item_data, _item_field, _item_value, _item_note])
+				if self._transaction.date == _date:
+					_item_field = QStandardItemWithID(self._transaction.field, _id)
+					_item_value = QStandardItemWithID(self._transaction.value, _id)
+					_item_note  = QStandardItemWithID(self._transaction.note,  _id)
+
+					_item_data.appendRow([_item_field, _item_value, _item_note])
+
+			self.model_transactions.appendRow([_item_data, QNoneModelItem(), QNoneModelItem()])
 
 		self.table_transactions.sortByColumn(0, Qt.AscendingOrder)
-		self.model_transactions.setHorizontalHeaderLabels(["Дата", "Характеристика", "Значение", "Примечание"])
+		self.model_transactions.setHorizontalHeaderLabels(["Данные", "Значение", "Примечание"])
 
 		self._gui_resize_fields()
 
